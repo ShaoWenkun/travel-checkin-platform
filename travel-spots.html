@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>逛景点 · Travel足迹</title>
+<style>
+:root{
+  --primary:#0ea5a4; --primary-dark:#0f766e; --accent:#f59e0b;
+  --ink:#0f172a; --ink-2:#334155; --muted:#64748b;
+  --bg:#f8fafc; --card:#fff; --line:#e2e8f0;
+  --grad:linear-gradient(135deg,#0ea5a4 0%,#0284c7 100%);
+  --shadow:0 10px 30px -10px rgba(2,132,199,.25); --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+img{display:block;max-width:100%}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input{font-family:inherit}
+.wrap{width:min(1160px,92%);margin:0 auto}
+section{padding:44px 0}
+.tag{display:inline-block;font-size:12px;letter-spacing:.15em;color:var(--primary);font-weight:700;text-transform:uppercase;margin-bottom:8px}
+h2.sec-title{font-size:26px;font-weight:800}
+.sec-sub{color:var(--muted);font-size:14px;margin-top:4px}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+
+nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);background:rgba(255,255,255,.88);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+.logo .dot{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:15px;box-shadow:var(--shadow)}
+/* 滑动式导航:悬停/选中时渐变胶囊滑入 */
+.nav-links{display:flex;gap:4px;font-size:14px;color:var(--ink-2)}
+.nav-links a{position:relative;padding:8px 16px;border-radius:999px;transition:color .25s;z-index:1;white-space:nowrap}
+.nav-links a::before{content:"";position:absolute;inset:0;border-radius:999px;background:var(--grad);opacity:0;transform:translateX(-14px) scaleX(.6);transition:all .32s cubic-bezier(.34,1.45,.5,1);z-index:-1}
+.nav-links a:hover::before,.nav-links a.on::before{opacity:1;transform:none}
+.nav-links a:hover,.nav-links a.on{color:#fff;font-weight:700}
+/* 移动端:横向滑动导航条 */
+@media(max-width:760px){
+  nav .wrap{flex-wrap:wrap;height:auto;padding:8px 0;row-gap:4px}
+  .nav-links{order:3;width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-links::-webkit-scrollbar{display:none}
+}
+.user-chip{display:flex;align-items:center;gap:8px;background:#f0fdfa;border:1px solid #99f6e4;color:var(--primary-dark);font-weight:700;font-size:13.5px;padding:7px 16px;border-radius:999px;cursor:pointer}
+.user-chip .avatar{width:24px;height:24px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:12px}
+
+.rec{background:linear-gradient(180deg,#f0fdfa,#f8fafc)}
+.rec-reason{font-size:12.5px;color:var(--primary-dark);background:#ccfbf1;border-radius:8px;padding:6px 10px;margin-bottom:10px;font-weight:600}
+.rec-badge{position:absolute;bottom:10px;left:10px;background:rgba(14,165,164,.85);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;backdrop-filter:blur(4px)}
+.cat-tabs{display:flex;gap:10px;flex-wrap:wrap}
+.cat-tab{padding:8px 20px;border-radius:999px;font-size:14px;font-weight:600;background:#fff;border:1px solid var(--line);color:var(--ink-2);transition:all .2s}
+.cat-tab:hover{border-color:var(--primary);color:var(--primary)}
+.cat-tab.on{background:var(--grad);color:#fff;border-color:transparent;box-shadow:var(--shadow)}
+.mini-search{border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-size:13.5px;width:min(280px,100%);outline:none;background:#fff}
+.mini-search:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,164,.12)}
+
+.spot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:1000px){.spot-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.spot-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.spot-grid{grid-template-columns:1fr}}
+.spot{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:transform .25s,box-shadow .25s;display:flex;flex-direction:column}
+.spot:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.spot .ph{position:relative;overflow:hidden}
+.spot .ph img{height:160px;width:100%;object-fit:cover;transition:transform .5s}
+.spot:hover .ph img{transform:scale(1.07)}
+.spot .score{position:absolute;top:10px;right:10px;background:rgba(15,23,42,.72);backdrop-filter:blur(4px);color:#fcd34d;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px}
+.spot .fav{position:absolute;top:8px;left:8px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.9);display:grid;place-items:center;font-size:15px;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.spot .fav:hover{transform:scale(1.15)}
+.spot .fav.on{background:#fee2e2}
+.spot .bd{padding:13px 15px 15px;display:flex;flex-direction:column;flex:1}
+.spot .bd b{font-size:15px}
+.spot .loc{font-size:12px;color:var(--muted);margin:2px 0 8px}
+.spot .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.spot .tags span{font-size:11px;background:#f0fdfa;color:var(--primary-dark);border:1px solid #99f6e4;padding:1px 9px;border-radius:999px}
+.spot .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.spot .heat{font-size:11.5px;color:var(--muted)}
+.check-btn{background:var(--grad);color:#fff;font-size:13px;font-weight:700;padding:7px 18px;border-radius:999px;transition:all .2s}
+.check-btn:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+.check-btn.done{background:#e2e8f0;color:var(--primary-dark);box-shadow:none}
+.empty{grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted)}
+.empty .big{font-size:42px;margin-bottom:10px}
+
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:20px;width:min(440px,100%);padding:28px;animation:pop .25s ease}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+.modal h3{font-size:18px;margin-bottom:4px}
+.modal .msub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.modal .mimg{height:140px;width:100%;object-fit:cover;border-radius:12px;margin-bottom:16px}
+.star-row{display:flex;gap:6px;font-size:26px;margin-bottom:16px;justify-content:center}
+.star-row span{cursor:pointer;color:#e2e8f0;transition:transform .15s,color .15s}
+.star-row span.on{color:#f59e0b}
+.star-row span:hover{transform:scale(1.2)}
+.modal textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-family:inherit;font-size:14px;min-height:80px;resize:vertical;outline:none}
+.modal textarea:focus{border-color:var(--primary)}
+.modal input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:14px;outline:none;margin-bottom:14px}
+.modal input:focus{border-color:var(--primary)}
+.modal-btns{display:flex;gap:10px;margin-top:18px}
+.modal-btns .mbtn{flex:1;padding:11px 0;border-radius:999px;font-weight:700;font-size:14.5px;text-align:center}
+.mbtn.primary{background:var(--grad);color:#fff}
+.mbtn.ghost{background:#f1f5f9;color:var(--ink-2)}
+/* ---------- 登录 / 注册 / 退出 ---------- */
+.auth-modal{width:min(420px,100%);padding:30px 28px 26px;position:relative}
+.auth-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:#f1f5f9;color:var(--muted);font-size:13px;display:grid;place-items:center;transition:all .2s}
+.auth-close:hover{background:#fee2e2;color:#dc2626;transform:rotate(90deg)}
+.auth-brand{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;font-size:20px}
+.auth-brand .ab-dot{width:38px;height:38px;border-radius:12px;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:16px;box-shadow:var(--shadow)}
+.auth-brand em{font-style:normal;color:var(--primary)}
+.auth-sub{text-align:center;font-size:12.5px;color:var(--muted);margin:6px 0 18px}
+.auth-tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;background:#f1f5f9;border-radius:999px;padding:4px;margin-bottom:20px}
+.auth-slider{position:absolute;top:4px;left:4px;width:calc(50% - 4px);height:calc(100% - 8px);background:var(--grad);border-radius:999px;transition:transform .3s cubic-bezier(.34,1.3,.5,1);box-shadow:var(--shadow)}
+.auth-tab{position:relative;z-index:1;text-align:center;font-size:14px;font-weight:700;color:var(--muted);padding:8px 0;cursor:pointer;transition:color .25s}
+.auth-tab.on{color:#fff}
+.field{position:relative;margin-bottom:13px}
+.field .fico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.75;pointer-events:none}
+.field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 40px;font-size:13.5px;outline:none;transition:border .2s,box-shadow .2s;margin:0}
+.field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,164,.12)}
+.field .eye{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.45;cursor:pointer;transition:opacity .2s}
+.field .eye:hover{opacity:1}
+.auth-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin:2px 0 14px}
+.auth-row .ck{display:flex;align-items:center;gap:5px;cursor:pointer}
+.auth-row input[type=checkbox],.agree input[type=checkbox]{width:auto;margin:0;padding:0;border:none;accent-color:var(--primary)}
+.forgot{color:var(--primary);font-weight:600;cursor:pointer}
+.auth-submit{width:100%;padding:12px 0;border-radius:999px;font-size:15px;letter-spacing:2px}
+.auth-divider{display:flex;align-items:center;gap:12px;font-size:11.5px;color:#94a3b8;margin:18px 0 12px}
+.auth-divider i{flex:1;height:1px;background:var(--line)}
+.auth-social{display:flex;justify-content:center;gap:16px}
+.soc{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.soc:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.soc.wx{background:#22c55e}.soc.qq{background:#38bdf8}.soc.wb{background:#f43f5e}
+.agree{display:block;font-size:11.5px;color:var(--muted);margin:-2px 0 14px;cursor:pointer}
+.agree a{color:var(--primary);font-weight:600}
+.auth-tip{text-align:center;font-size:10.5px;color:#b6c2d1;margin-top:14px}
+.lg-icon{width:64px;height:64px;margin:2px auto 12px;border-radius:50%;background:linear-gradient(135deg,#e0f2f1,#f0fdfa);display:grid;place-items:center;font-size:30px}
+.crawl-badge{position:absolute;bottom:10px;left:10px;background:rgba(15,23,42,.72);color:#a7f3d0;font-size:10.5px;padding:3px 9px;border-radius:999px;backdrop-filter:blur(4px)}
+#toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:14px;padding:11px 24px;border-radius:999px;opacity:0;pointer-events:none;transition:all .3s;z-index:300;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#toast.show{opacity:1;transform:translateX(-50%)}
+footer{background:var(--ink);color:#94a3b8;padding:34px 0 24px;text-align:center;font-size:13px;margin-top:20px}
+footer b{color:#fff}
+footer b em{font-style:normal;color:#5eead4}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="travel-app.html"><span class="dot">旅</span>Travel<span style="color:var(--primary)">足迹</span></a>
+    <div class="nav-links">
+      <a href="travel-app.html">首页</a>
+      <a href="travel-ai.html">AI 规划师</a>
+      <a href="travel-spots.html" class="on">逛景点</a>
+      <a href="travel-footprint.html">我的足迹</a>
+      <a href="travel-moments.html">社区动态</a>
+    </div>
+    <button class="user-chip" onclick="openLogin()"><span class="avatar" id="userAvatar">登</span><span id="userName">登录 / 注册</span></button>
+  </div>
+</nav>
+
+<!-- ===================== 猜你喜欢 ===================== -->
+<section class="rec" id="recommend">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div><span class="tag">For You</span><h2 class="sec-title">猜你喜欢</h2><p class="sec-sub">协同过滤推荐:根据你的打卡、评分与收藏行为,匹配相似口味旅行者</p></div>
+      <button class="cat-tab" onclick="refreshRecommend(true)">换一批</button>
+    </div>
+    <div class="spot-grid" id="recGrid"></div>
+  </div>
+</section>
+
+<!-- ===================== 景点列表 ===================== -->
+<section id="spots" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div><span class="tag">Explore</span><h2 class="sec-title">逛景点</h2><p class="sec-sub" id="spotCount"></p></div>
+      <input class="mini-search" id="spotSearch" placeholder="🔍 搜索景点 / 城市 / 标签…" oninput="onSearch(this.value)">
+    </div>
+    <div class="cat-tabs reveal" style="margin-bottom:24px" id="catTabs"></div>
+    <div class="spot-grid" id="spotGrid"></div>
+  </div>
+</section>
+
+<!-- 打卡弹窗 -->
+<div class="modal-mask" id="checkModal">
+  <div class="modal">
+    <h3 id="cmName">打卡</h3>
+    <p class="msub" id="cmLoc"></p>
+    <img class="mimg" id="cmImg" alt="">
+    <div class="star-row" id="starRow"></div>
+    <textarea id="cmNote" placeholder="记录此刻心情…(选填)"></textarea>
+    <div class="modal-btns">
+      <button class="mbtn ghost" onclick="closeModal('checkModal')">取消</button>
+      <button class="mbtn primary" onclick="confirmCheckin()">确认打卡</button>
+    </div>
+  </div>
+</div>
+
+<!-- 登录 / 注册弹窗 -->
+<div class="modal-mask" id="loginModal">
+  <div class="modal auth-modal">
+    <button class="auth-close" onclick="closeModal('loginModal')">✕</button>
+    <div class="auth-brand"><span class="ab-dot">旅</span>Travel<em>足迹</em></div>
+    <p class="auth-sub">记录每一站风景,点亮你的旅行地图</p>
+    <div class="auth-tabs">
+      <span class="auth-slider"></span>
+      <span class="auth-tab on" onclick="switchAuth('login')">登 录</span>
+      <span class="auth-tab" onclick="switchAuth('reg')">注 册</span>
+    </div>
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="field"><span class="fico">👤</span><input id="liAccount" placeholder="手机号 / 邮箱" autocomplete="username"></div>
+      <div class="field"><span class="fico">🔒</span><input id="liPwd" type="password" placeholder="密码" autocomplete="current-password"><span class="eye" onclick="togglePwd('liPwd',this)">👁</span></div>
+      <div class="auth-row">
+        <label class="ck"><input type="checkbox" id="liRemember" checked>记住我</label>
+        <a class="forgot" onclick="toast('演示环境:请联系管理员重置密码')">忘记密码?</a>
+      </div>
+      <button type="submit" class="mbtn primary auth-submit">登 录</button>
+      <div class="auth-divider"><i></i>其他登录方式<i></i></div>
+      <div class="auth-social">
+        <span class="soc wx" onclick="socialLogin('微信')">微</span>
+        <span class="soc qq" onclick="socialLogin('QQ')">Q</span>
+        <span class="soc wb" onclick="socialLogin('微博')">博</span>
+      </div>
+      <p class="auth-tip">演示环境:注册数据保存在本机浏览器 · 正式版由 Spring Boot + JWT + bcrypt 实现</p>
+    </form>
+    <form id="regForm" onsubmit="return doRegister(event)" style="display:none">
+      <div class="field"><span class="fico">😊</span><input id="rgName" placeholder="昵称(2-12位)" maxlength="12"></div>
+      <div class="field"><span class="fico">📱</span><input id="rgAccount" placeholder="手机号 / 邮箱"></div>
+      <div class="field"><span class="fico">🔒</span><input id="rgPwd" type="password" placeholder="密码(至少6位)"><span class="eye" onclick="togglePwd('rgPwd',this)">👁</span></div>
+      <div class="field"><span class="fico">✅</span><input id="rgPwd2" type="password" placeholder="确认密码"><span class="eye" onclick="togglePwd('rgPwd2',this)">👁</span></div>
+      <label class="agree"><input type="checkbox" id="rgAgree">我已阅读并同意 <a onclick="toast('演示环境:协议文档')">《用户协议》</a>与<a onclick="toast('演示环境:协议文档')">《隐私政策》</a></label>
+      <button type="submit" class="mbtn primary auth-submit">注 册 并 登 录</button>
+    </form>
+  </div>
+</div>
+
+<!-- 退出登录确认弹窗 -->
+<div class="modal-mask" id="logoutModal">
+  <div class="modal" style="width:min(360px,100%);text-align:center;padding:28px 24px 22px">
+    <div class="lg-icon">👋</div>
+    <h3 style="margin-bottom:4px">确认退出登录?</h3>
+    <p class="msub">退出后仍可浏览景点与推荐,重新登录即可找回你的打卡足迹</p>
+    <div class="modal-btns">
+      <button class="mbtn ghost" onclick="closeModal('logoutModal')">再逛逛</button>
+      <button class="mbtn primary" onclick="doLogout()">确认退出</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- 删除打卡确认弹窗 -->
+<div class="modal-mask" id="delModal">
+  <div class="modal" style="width:min(360px,100%);text-align:center;padding:28px 24px 22px">
+    <div class="lg-icon" style="background:linear-gradient(135deg,#fee2e2,#fef2f2)">🗑️</div>
+    <h3 style="margin-bottom:4px">删除这条打卡记录?</h3>
+    <p class="msub">删除后足迹地图将同步熄灭该城市,收藏与评分不受影响</p>
+    <div class="modal-btns">
+      <button class="mbtn ghost" onclick="closeModal('delModal')">再想想</button>
+      <button class="mbtn primary" style="background:linear-gradient(135deg,#ef4444,#f97316)" onclick="confirmDelCheckin()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <b>Travel<em>足迹</em></b> · 逛景点 · 数据存储于浏览器本地
+</footer>
+
+<script>
+/* ---------- 数据层 ---------- */
+const LS = {
+  get:(k,d)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
+const api = {
+  getUser:    ()=>LS.get('tcf_user',null),
+  login:      (name)=>LS.set('tcf_user',{name}),
+  logout:     ()=>localStorage.removeItem('tcf_user'),
+  getCheckins:()=>LS.get('tcf_checkins',[]),
+  addCheckin: (c)=>{ const l=api.getCheckins(); l.unshift(c); LS.set('tcf_checkins',l); },
+  removeCheckin: (spotId)=>{ LS.set('tcf_checkins', api.getCheckins().filter(c=>c.spotId!==spotId)); },
+  getFavs:    ()=>LS.get('tcf_favs',[]),
+  toggleFav:  (id)=>{ let f=api.getFavs(); f=f.includes(id)?f.filter(x=>x!==id):[...f,id]; LS.set('tcf_favs',f); return f.includes(id); },
+  getScores:  ()=>LS.get('tcf_scores',{}),
+  setScore:   (id,s)=>{ const m=api.getScores(); m[id]=s; LS.set('tcf_scores',m); }
+};
+const IMG = p => `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(p)}&image_size=landscape_4_3`;
+const SPOTS = [
+ {id:1, name:'丽江古城', city:'丽江', province:'云南', cat:'古镇', score:4.9, heat:9214, tags:['古镇','夜景','世遗'], img:IMG('ancient town of Lijiang Yunnan China at dusk, traditional Naxi architecture, red lanterns, stone canal, travel photography')},
+ {id:2, name:'亚龙湾', city:'三亚', province:'海南', cat:'海岛', score:4.8, heat:7436, tags:['海岛','沙滩','潜水'], img:IMG('tropical beach in Sanya Hainan China, turquoise sea, white sand, coconut palms, sunny travel photography')},
+ {id:3, name:'张家界国家森林公园', city:'张家界', province:'湖南', cat:'山川', score:4.8, heat:8102, tags:['奇峰','云海','栈道'], img:IMG('Zhangjiajie national forest park China, towering sandstone pillars in sea of clouds, lush green, epic travel photography')},
+ {id:4, name:'八达岭长城', city:'北京', province:'北京', cat:'历史', score:4.7, heat:5807, tags:['历史','徒步','日出'], img:IMG('Great Wall of China winding over green mountains at sunset, golden dramatic sky, travel photography')},
+ {id:5, name:'西湖', city:'杭州', province:'浙江', cat:'城市', score:4.8, heat:6890, tags:['湖泊','园林','骑行'], img:IMG('West Lake Hangzhou China, Leifeng pagoda by calm lake, willow trees, misty Jiangnan scenery, travel photography')},
+ {id:6, name:'鼓浪屿', city:'厦门', province:'福建', cat:'海岛', score:4.6, heat:5420, tags:['海岛','文艺','建筑'], img:IMG('Gulangyu island Xiamen China, colonial architecture, piano island, bougainvillea flowers, seaside travel photography')},
+ {id:7, name:'九寨沟', city:'阿坝', province:'四川', cat:'山川', score:4.9, heat:7780, tags:['彩池','瀑布','秋色'], img:IMG('Jiuzhaigou valley Sichuan China, colorful turquoise lakes, waterfalls, autumn forest reflection, travel photography')},
+ {id:8, name:'秦始皇兵马俑', city:'西安', province:'陕西', cat:'历史', score:4.8, heat:6130, tags:['历史','博物馆','考古'], img:IMG('Terracotta Army museum Xian China, rows of ancient terracotta warriors in excavation pit, museum photography')},
+ {id:9, name:'呼伦贝尔大草原', city:'呼伦贝尔', province:'内蒙古', cat:'草原', score:4.7, heat:4320, tags:['草原','骑马','星空'], img:IMG('Hulunbuir grassland Inner Mongolia China, endless green meadow, horses grazing, blue sky white clouds, travel photography')},
+ {id:10,name:'凤凰古城', city:'湘西', province:'湖南', cat:'古镇', score:4.6, heat:4980, tags:['古镇','吊脚楼','沱江'], img:IMG('Fenghuang ancient town Hunan China, stilt houses along Tuo river at night, lanterns reflection, travel photography')},
+ {id:11,name:'黄山', city:'黄山', province:'安徽', cat:'山川', score:4.9, heat:7210, tags:['奇松','云海','日出'], img:IMG('Huangshan Yellow Mountains China, pine trees on granite peaks above sea of clouds at sunrise, epic travel photography')},
+ {id:12,name:'外滩', city:'上海', province:'上海', cat:'城市', score:4.7, heat:8340, tags:['夜景','都市','建筑'], img:IMG('Shanghai Bund skyline at night, Lujiazui skyscrapers neon lights across Huangpu river, city travel photography')}
+];
+const CATS = ['全部','山川','海岛','古镇','历史','城市','草原'];
+
+let state = { cat:'全部', kw:'', checkSpot:null, star:0, recPool:[], recOffset:0 };
+const $ = id => document.getElementById(id);
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2200); }
+function openModal(id){ $(id).classList.add('show'); }
+function closeModal(id){ $(id).classList.remove('show'); }
+function getSpot(id){ return SPOTS.find(s=>s.id===id); }
+
+/* ---------- 登录 / 注册 / 退出 ---------- */
+const ACC_RE = /^1[3-9]\d{9}$|^[^\s@]+@[^\s@]+\.[^\s@]+$/;   // 手机号或邮箱
+const getUsers = ()=>LS.get('tcf_users',[]);
+
+function openLogin(){
+  const u = api.getUser();
+  if(u){ openModal('logoutModal'); return; }   // 已登录 → 弹出退出确认
+  openModal('loginModal'); switchAuth('login'); setTimeout(()=>$('liAccount').focus(),150);
+}
+function switchAuth(mode){
+  const m = $('loginModal'), isLogin = mode==='login';
+  const tabs = m.querySelectorAll('.auth-tab');
+  tabs[0].classList.toggle('on',isLogin); tabs[1].classList.toggle('on',!isLogin);
+  m.querySelector('.auth-slider').style.transform = isLogin ? 'translateX(0)' : 'translateX(100%)';
+  $('loginForm').style.display = isLogin ? '' : 'none';
+  $('regForm').style.display = isLogin ? 'none' : '';
+}
+function togglePwd(id, el){
+  const inp = $(id);
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  el.style.opacity = inp.type==='text' ? '1' : '.45';
+}
+function socialLogin(p){ toast(`${p}登录为演示入口,正式版通过 Spring Boot OAuth2 对接`); }
+
+function doLogin(e){
+  if(e) e.preventDefault();
+  const acc = $('liAccount').value.trim(), pwd = $('liPwd').value;
+  if(!acc){ toast('请输入手机号或邮箱'); $('liAccount').focus(); return false; }
+  if(!ACC_RE.test(acc)){ toast('账号格式不正确,应为手机号或邮箱'); $('liAccount').focus(); return false; }
+  if(!pwd){ toast('请输入密码'); $('liPwd').focus(); return false; }
+  const user = getUsers().find(u=>u.account===acc);
+  if(!user){ toast('该账号尚未注册,已为你切换到注册'); switchAuth('reg'); $('rgAccount').value=acc; $('rgName').focus(); return false; }
+  if(user.pwd!==pwd){ toast('密码错误,请重试'); $('liPwd').value=''; $('liPwd').focus(); return false; }
+  api.login(user.name);
+  closeModal('loginModal'); syncUser(); toast(`欢迎回来,${user.name}!`);
+  return false;
+}
+function doRegister(e){
+  if(e) e.preventDefault();
+  const name = $('rgName').value.trim(), acc = $('rgAccount').value.trim(), p1 = $('rgPwd').value, p2 = $('rgPwd2').value;
+  if(name.length<2){ toast('昵称至少 2 个字符'); $('rgName').focus(); return false; }
+  if(!ACC_RE.test(acc)){ toast('请输入正确的手机号或邮箱'); $('rgAccount').focus(); return false; }
+  if(p1.length<6){ toast('密码至少 6 位'); $('rgPwd').focus(); return false; }
+  if(p1!==p2){ toast('两次输入的密码不一致'); $('rgPwd2').focus(); return false; }
+  if(!$('rgAgree').checked){ toast('请先阅读并勾选用户协议'); return false; }
+  const users = getUsers();
+  if(users.some(u=>u.account===acc)){ toast('该账号已注册,请直接登录'); switchAuth('login'); $('liAccount').value=acc; $('liPwd').focus(); return false; }
+  users.push({name, account:acc, pwd:p1, time:Date.now()});   // 演示环境本地存储;正式版由后端 bcrypt 加密入库
+  LS.set('tcf_users',users);
+  api.login(name);
+  closeModal('loginModal'); syncUser(); toast(`注册成功,欢迎加入,${name}!`);
+  return false;
+}
+function doLogout(){
+  closeModal('logoutModal');
+  api.logout(); syncUser();
+  toast('👋 已安全退出,期待你的下一次旅程!');
+  setTimeout(()=>{ location.href = 'travel-app.html'; }, 900);   // 返回首页
+}
+function syncUser(){
+  const u = api.getUser();
+  $('userName').textContent = u ? u.name : '登录 / 注册';
+  $('userAvatar').textContent = u ? u.name[0].toUpperCase() : '登';
+}
+
+/* ---------- 景点卡片 ---------- */
+function cardHTML(s, opts={}){
+  const isFav = api.getFavs().includes(s.id), isCk = api.getCheckins().some(c=>c.spotId===s.id);
+  return `
+  <div class="spot">
+    <div class="ph">
+      <img src="${s.img}" alt="${s.name}" loading="lazy">
+      <span class="score">★ ${s.score}</span>
+      ${opts.recTag?`<span class="rec-badge">✨ 为你推荐</span>`:''}
+      ${s.src==='crawl'?`<span class="crawl-badge">🐍 爬虫数据</span>`:''}
+      <button class="fav ${isFav?'on':''}" title="收藏" onclick="toggleFav(${s.id})">${isFav?'❤️':'🤍'}</button>
+    </div>
+    <div class="bd">
+      ${opts.reason?`<div class="rec-reason">💡 ${opts.reason}</div>`:''}
+      <b>${s.name}</b>
+      <div class="loc">📍 ${s.province} · ${s.city}</div>
+      <div class="tags">${s.tags.map(t=>`<span>${t}</span>`).join('')}</div>
+      <div class="foot">
+        <span class="heat">🔥 ${s.heat.toLocaleString()} 人打卡</span>
+        <button class="check-btn ${isCk?'done':''}" title="${isCk?'点击可删除该打卡记录':''}" onclick="onCheckin(${s.id})">${isCk?'✓ 已打卡':'打卡'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function renderSpots(){
+  let list = SPOTS.filter(s => state.cat==='全部' || s.cat===state.cat);
+  if(state.kw){
+    const k = state.kw.toLowerCase();
+    list = list.filter(s => (s.name+s.city+s.province+s.tags.join('')+s.cat).toLowerCase().includes(k));
+  }
+  $('spotCount').textContent = `共 ${list.length} 个景点${state.kw?` · 搜索“${state.kw}”`:''}${state.cat!=='全部'?` · 分类:${state.cat}`:''}`;
+  $('spotGrid').innerHTML = list.length
+    ? list.map(s=>cardHTML(s)).join('')
+    : `<div class="empty"><div class="big">🧭</div>没有找到相关景点,换个关键词试试吧</div>`;
+}
+function renderCats(){
+  $('catTabs').innerHTML = CATS.map(c=>`<button class="cat-tab ${c===state.cat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('');
+}
+function setCat(c){ state.cat=c; renderCats(); renderSpots(); }
+function onSearch(v){ state.kw=v.trim(); renderSpots(); }
+
+/* ---------- 收藏 ---------- */
+function toggleFav(id){
+  const added = api.toggleFav(id);
+  toast(added ? '已加入收藏 ❤️' : '已取消收藏');
+  renderSpots(); renderRec();
+}
+
+/* ---------- 打卡 ---------- */
+function onCheckin(id){
+  if(api.getCheckins().some(c=>c.spotId===id)){ state.delSpot=id; openModal('delModal'); return; }   // 已打卡 → 打开删除确认
+  const s = getSpot(id);
+  state.checkSpot = id; state.star = 0;
+  $('cmName').textContent = `📍 打卡 · ${s.name}`;
+  $('cmLoc').textContent = `${s.province} · ${s.city} · 当前评分 ★${s.score}`;
+  $('cmImg').src = s.img;
+  $('cmNote').value = '';
+  renderStars();
+  openModal('checkModal');
+}
+function renderStars(){
+  $('starRow').innerHTML = [1,2,3,4,5].map(i=>`<span class="${i<=state.star?'on':''}" onclick="setStar(${i})">★</span>`).join('') + `<span style="font-size:13px;color:var(--muted);align-self:center;margin-left:8px">${state.star?state.star+' 分':'为TA评分'}</span>`;
+}
+function setStar(i){ state.star=i; renderStars(); }
+function confirmCheckin(){
+  const id = state.checkSpot; if(!id) return;
+  api.addCheckin({spotId:id, note:$('cmNote').value.trim(), time:Date.now()});
+  if(state.star) api.setScore(id, state.star);
+  closeModal('checkModal');
+  toast('打卡成功!足迹地图已点亮该城市 🎉');
+  renderSpots(); renderRec(true);
+}
+function confirmDelCheckin(){
+  const id = state.delSpot; if(!id) return;
+  api.removeCheckin(id);
+  closeModal('delModal');
+  toast('已删除该打卡记录,足迹地图已同步熄灭');
+  renderSpots(); renderRec(true);
+}
+
+/* ---------- 个性化推荐(前端模拟 UserCF 输出) ---------- */
+function buildRecommend(){
+  const cks = api.getCheckins(), favs = api.getFavs(), scores = api.getScores();
+  const done = new Set(cks.map(c=>c.spotId));
+  const catW = {}, cityW = {};
+  const bump = (id,w)=>{ const s=getSpot(id); if(!s) return; catW[s.cat]=(catW[s.cat]||0)+w; cityW[s.city]=(cityW[s.city]||0)+w; };
+  cks.forEach(c=>bump(c.spotId, 3));
+  favs.forEach(id=>bump(id, 2));
+  Object.entries(scores).forEach(([id,s])=>{ if(s>=4) bump(+id, s-2); });
+  const hasBehavior = Object.keys(catW).length>0;
+  const maxHeat = Math.max(...SPOTS.map(s=>s.heat));
+  return SPOTS.filter(s=>!done.has(s.id)).map(s=>{
+    let score = s.score*0.5 + (s.heat/maxHeat)*0.2;
+    let reason = '热门高分景点,大家都在打卡';
+    if(hasBehavior){
+      const cw = catW[s.cat]||0, tw = cityW[s.city]||0;
+      score += Math.min(cw,6)*0.15 + Math.min(tw,6)*0.1;
+      if(cw>0) reason = `与你打卡过的「${s.cat}」类景点口味相似`;
+      if(tw>0) reason = `与你去过的「${s.city}」同城热门`;
+    }
+    return {s, score, reason};
+  }).sort((a,b)=>b.score-a.score);
+}
+function refreshRecommend(force){
+  if(force || !state.recPool.length){ state.recPool = buildRecommend(); state.recOffset = 0; }
+  else state.recOffset = (state.recOffset + 4) % Math.max(state.recPool.length,1);
+  renderRec();
+}
+function renderRec(){
+  const pool = state.recPool;
+  if(!pool.length){ $('recGrid').innerHTML = `<div class="empty"><div class="big">🏆</div>太棒了,你已打卡全部景点!</div>`; return; }
+  const items = [];
+  for(let i=0;i<Math.min(4,pool.length);i++) items.push(pool[(state.recOffset+i)%pool.length]);
+  $('recGrid').innerHTML = items.map(it=>cardHTML(it.s,{recTag:true,reason:it.reason})).join('');
+}
+
+/* ---------- 加载 Python 爬虫数据(spots.json,由 crawl_spots.py 生成) ---------- */
+async function loadCrawledSpots(){
+  try{
+    const res = await fetch('spots.json', {cache:'no-store'});
+    if(!res.ok) return;
+    const list = await res.json();
+    if(!Array.isArray(list) || !list.length) return;
+    let n = 0, nextId = 1000;
+    list.forEach(o=>{
+      if(!o || !o.name || SPOTS.some(s=>s.name===o.name)) return;
+      const cat = o.cat || '城市';
+      if(!CATS.includes(cat)) CATS.push(cat);   // 新分类自动加入分类栏
+      SPOTS.push({
+        id: nextId++, name:o.name,
+        city:o.city || '中国', province:o.province || o.city || '',
+        cat, score:+(o.score||4.5), heat:+(o.heat||1200),
+        tags:(Array.isArray(o.tags)&&o.tags.length)?o.tags.slice(0,3):[cat],
+        img:o.img || IMG(o.name+' scenic view China travel photography'),
+        src:'crawl'
+      });
+      n++;
+    });
+    if(n){ renderCats(); renderSpots(); refreshRecommend(true); toast(`🐍 已加载爬虫数据,新增 ${n} 个景点`); }
+  }catch(e){ /* 本地 file:// 打开或无 spots.json 时静默跳过 */ }
+}
+
+/* ---------- 初始化 ---------- */
+syncUser(); renderCats(); renderSpots(); refreshRecommend(); loadCrawledSpots();
+document.querySelectorAll('.modal-mask').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('show'); }));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-mask.show').forEach(m=>m.classList.remove('show')); });
+const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

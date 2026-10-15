@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>社区动态 · Travel足迹</title>
+<style>
+:root{
+  --primary:#0ea5a4; --primary-dark:#0f766e; --accent:#f59e0b;
+  --ink:#0f172a; --ink-2:#334155; --muted:#64748b;
+  --bg:#f8fafc; --card:#fff; --line:#e2e8f0;
+  --grad:linear-gradient(135deg,#0ea5a4 0%,#0284c7 100%);
+  --shadow:0 10px 30px -10px rgba(2,132,199,.25); --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,textarea{font-family:inherit}
+.wrap{width:min(860px,92%);margin:0 auto}
+
+nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);background:rgba(255,255,255,.88);border-bottom:1px solid var(--line)}
+nav .navwrap{width:min(1160px,92%);margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+.logo .dot{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:15px;box-shadow:var(--shadow)}
+/* 滑动式导航:悬停/选中时渐变胶囊滑入 */
+.nav-links{display:flex;gap:4px;font-size:14px;color:var(--ink-2)}
+.nav-links a{position:relative;padding:8px 16px;border-radius:999px;transition:color .25s;z-index:1;white-space:nowrap}
+.nav-links a::before{content:"";position:absolute;inset:0;border-radius:999px;background:var(--grad);opacity:0;transform:translateX(-14px) scaleX(.6);transition:all .32s cubic-bezier(.34,1.45,.5,1);z-index:-1}
+.nav-links a:hover::before,.nav-links a.on::before{opacity:1;transform:none}
+.nav-links a:hover,.nav-links a.on{color:#fff;font-weight:700}
+/* 移动端:横向滑动导航条 */
+@media(max-width:760px){
+  nav .navwrap{flex-wrap:wrap;height:auto;padding:8px 0;row-gap:4px}
+  .nav-links{order:3;width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-links::-webkit-scrollbar{display:none}
+}
+.user-chip{display:flex;align-items:center;gap:8px;background:#f0fdfa;border:1px solid #99f6e4;color:var(--primary-dark);font-weight:700;font-size:13.5px;padding:7px 16px;border-radius:999px;cursor:pointer}
+.user-chip .avatar{width:24px;height:24px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:12px}
+
+.page{padding:44px 0 70px}
+.page-head{margin-bottom:24px}
+.page-head h1{font-size:clamp(24px,3.4vw,34px);font-weight:900}
+.page-head h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.page-head p{color:var(--muted);font-size:14px}
+
+.moment-post{display:flex;gap:12px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:22px}
+.moment-post .mav{flex:none;width:42px;height:42px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:800}
+.moment-post textarea{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px;resize:vertical;min-height:46px;outline:none;transition:border .2s}
+.moment-post textarea:focus{border-color:var(--primary)}
+.moment-post button{align-self:flex-end;background:var(--grad);color:#fff;font-weight:700;font-size:13.5px;padding:9px 22px;border-radius:999px}
+.moment-list{display:grid;gap:14px}
+.moment{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
+.moment .mhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.moment .mhead .mav{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#0284c7);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}
+.moment .mhead b{font-size:14.5px}
+.moment .mhead .mtime{font-size:12px;color:var(--muted)}
+.moment .mhead .mspot{color:var(--primary);font-weight:700}
+.moment .mtext{font-size:14.5px;color:var(--ink-2)}
+.moment .mfoot{margin-top:10px;display:flex;gap:18px;font-size:13px;color:var(--muted)}
+.moment .mfoot button{color:var(--muted);font-size:13px;transition:color .2s}
+.moment .mfoot button:hover,.moment .mfoot button.on{color:#e11d48}
+
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:20px;width:min(440px,100%);padding:28px;animation:pop .25s ease}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+.modal h3{font-size:18px;margin-bottom:4px}
+.modal .msub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.modal input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:14px;outline:none;margin-bottom:14px}
+.modal input:focus{border-color:var(--primary)}
+.modal-btns{display:flex;gap:10px;margin-top:4px}
+.modal-btns .mbtn{flex:1;padding:11px 0;border-radius:999px;font-weight:700;font-size:14.5px;text-align:center}
+.mbtn.primary{background:var(--grad);color:#fff}
+.mbtn.ghost{background:#f1f5f9;color:var(--ink-2)}
+/* ---------- 登录 / 注册 / 退出 ---------- */
+.auth-modal{width:min(420px,100%);padding:30px 28px 26px;position:relative}
+.auth-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:#f1f5f9;color:var(--muted);font-size:13px;display:grid;place-items:center;transition:all .2s}
+.auth-close:hover{background:#fee2e2;color:#dc2626;transform:rotate(90deg)}
+.auth-brand{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;font-size:20px}
+.auth-brand .ab-dot{width:38px;height:38px;border-radius:12px;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:16px;box-shadow:var(--shadow)}
+.auth-brand em{font-style:normal;color:var(--primary)}
+.auth-sub{text-align:center;font-size:12.5px;color:var(--muted);margin:6px 0 18px}
+.auth-tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;background:#f1f5f9;border-radius:999px;padding:4px;margin-bottom:20px}
+.auth-slider{position:absolute;top:4px;left:4px;width:calc(50% - 4px);height:calc(100% - 8px);background:var(--grad);border-radius:999px;transition:transform .3s cubic-bezier(.34,1.3,.5,1);box-shadow:var(--shadow)}
+.auth-tab{position:relative;z-index:1;text-align:center;font-size:14px;font-weight:700;color:var(--muted);padding:8px 0;cursor:pointer;transition:color .25s}
+.auth-tab.on{color:#fff}
+.field{position:relative;margin-bottom:13px}
+.field .fico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.75;pointer-events:none}
+.field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 40px;font-size:13.5px;outline:none;transition:border .2s,box-shadow .2s;margin:0}
+.field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,164,.12)}
+.field .eye{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.45;cursor:pointer;transition:opacity .2s}
+.field .eye:hover{opacity:1}
+.auth-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin:2px 0 14px}
+.auth-row .ck{display:flex;align-items:center;gap:5px;cursor:pointer}
+.auth-row input[type=checkbox],.agree input[type=checkbox]{width:auto;margin:0;padding:0;border:none;accent-color:var(--primary)}
+.forgot{color:var(--primary);font-weight:600;cursor:pointer}
+.auth-submit{width:100%;padding:12px 0;border-radius:999px;font-size:15px;letter-spacing:2px}
+.auth-divider{display:flex;align-items:center;gap:12px;font-size:11.5px;color:#94a3b8;margin:18px 0 12px}
+.auth-divider i{flex:1;height:1px;background:var(--line)}
+.auth-social{display:flex;justify-content:center;gap:16px}
+.soc{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.soc:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.soc.wx{background:#22c55e}.soc.qq{background:#38bdf8}.soc.wb{background:#f43f5e}
+.agree{display:block;font-size:11.5px;color:var(--muted);margin:-2px 0 14px;cursor:pointer}
+.agree a{color:var(--primary);font-weight:600}
+.auth-tip{text-align:center;font-size:10.5px;color:#b6c2d1;margin-top:14px}
+.lg-icon{width:64px;height:64px;margin:2px auto 12px;border-radius:50%;background:linear-gradient(135deg,#e0f2f1,#f0fdfa);display:grid;place-items:center;font-size:30px}
+#toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:14px;padding:11px 24px;border-radius:999px;opacity:0;pointer-events:none;transition:all .3s;z-index:300;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#toast.show{opacity:1;transform:translateX(-50%)}
+footer{background:var(--ink);color:#94a3b8;padding:34px 0 24px;text-align:center;font-size:13px}
+footer b{color:#fff}
+footer b em{font-style:normal;color:#5eead4}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="navwrap">
+    <a class="logo" href="travel-app.html"><span class="dot">旅</span>Travel<span style="color:var(--primary)">足迹</span></a>
+    <div class="nav-links">
+      <a href="travel-app.html">首页</a>
+      <a href="travel-ai.html">AI 规划师</a>
+      <a href="travel-spots.html">逛景点</a>
+      <a href="travel-footprint.html">我的足迹</a>
+      <a href="travel-moments.html" class="on">社区动态</a>
+    </div>
+    <button class="user-chip" onclick="openLogin()"><span class="avatar" id="userAvatar">登</span><span id="userName">登录 / 注册</span></button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="wrap">
+    <div class="page-head reveal">
+      <h1>💬 <em>社区动态</em></h1>
+      <p>分享你的旅途见闻,看看同好们最近去了哪里</p>
+    </div>
+    <div class="moment-post reveal">
+      <div class="mav" id="postAvatar">游</div>
+      <textarea id="momentInput" placeholder="分享你的旅途见闻吧…"></textarea>
+      <button onclick="postMoment()">发布</button>
+    </div>
+    <div class="moment-list reveal" id="momentList"></div>
+  </div>
+</div>
+
+<!-- 登录 / 注册弹窗 -->
+<div class="modal-mask" id="loginModal">
+  <div class="modal auth-modal">
+    <button class="auth-close" onclick="closeModal('loginModal')">✕</button>
+    <div class="auth-brand"><span class="ab-dot">旅</span>Travel<em>足迹</em></div>
+    <p class="auth-sub">记录每一站风景,点亮你的旅行地图</p>
+    <div class="auth-tabs">
+      <span class="auth-slider"></span>
+      <span class="auth-tab on" onclick="switchAuth('login')">登 录</span>
+      <span class="auth-tab" onclick="switchAuth('reg')">注 册</span>
+    </div>
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="field"><span class="fico">👤</span><input id="liAccount" placeholder="手机号 / 邮箱" autocomplete="username"></div>
+      <div class="field"><span class="fico">🔒</span><input id="liPwd" type="password" placeholder="密码" autocomplete="current-password"><span class="eye" onclick="togglePwd('liPwd',this)">👁</span></div>
+      <div class="auth-row">
+        <label class="ck"><input type="checkbox" id="liRemember" checked>记住我</label>
+        <a class="forgot" onclick="toast('演示环境:请联系管理员重置密码')">忘记密码?</a>
+      </div>
+      <button type="submit" class="mbtn primary auth-submit">登 录</button>
+      <div class="auth-divider"><i></i>其他登录方式<i></i></div>
+      <div class="auth-social">
+        <span class="soc wx" onclick="socialLogin('微信')">微</span>
+        <span class="soc qq" onclick="socialLogin('QQ')">Q</span>
+        <span class="soc wb" onclick="socialLogin('微博')">博</span>
+      </div>
+      <p class="auth-tip">演示环境:注册数据保存在本机浏览器 · 正式版由 Spring Boot + JWT + bcrypt 实现</p>
+    </form>
+    <form id="regForm" onsubmit="return doRegister(event)" style="display:none">
+      <div class="field"><span class="fico">😊</span><input id="rgName" placeholder="昵称(2-12位)" maxlength="12"></div>
+      <div class="field"><span class="fico">📱</span><input id="rgAccount" placeholder="手机号 / 邮箱"></div>
+      <div class="field"><span class="fico">🔒</span><input id="rgPwd" type="password" placeholder="密码(至少6位)"><span class="eye" onclick="togglePwd('rgPwd',this)">👁</span></div>
+      <div class="field"><span class="fico">✅</span><input id="rgPwd2" type="password" placeholder="确认密码"><span class="eye" onclick="togglePwd('rgPwd2',this)">👁</span></div>
+      <label class="agree"><input type="checkbox" id="rgAgree">我已阅读并同意 <a onclick="toast('演示环境:协议文档')">《用户协议》</a>与<a onclick="toast('演示环境:协议文档')">《隐私政策》</a></label>
+      <button type="submit" class="mbtn primary auth-submit">注 册 并 登 录</button>
+    </form>
+  </div>
+</div>
+
+<!-- 退出登录确认弹窗 -->
+<div class="modal-mask" id="logoutModal">
+  <div class="modal" style="width:min(360px,100%);text-align:center;padding:28px 24px 22px">
+    <div class="lg-icon">👋</div>
+    <h3 style="margin-bottom:4px">确认退出登录?</h3>
+    <p class="msub">退出后仍可浏览景点与推荐,重新登录即可找回你的打卡足迹</p>
+    <div class="modal-btns">
+      <button class="mbtn ghost" onclick="closeModal('logoutModal')">再逛逛</button>
+      <button class="mbtn primary" onclick="doLogout()">确认退出</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<footer>
+  <b>Travel<em>足迹</em></b> · 社区动态 · 数据存储于浏览器本地
+</footer>
+
+<script>
+/* ---------- 数据层 ---------- */
+const LS = {
+  get:(k,d)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
+const api = {
+  getUser:    ()=>LS.get('tcf_user',null),
+  login:      (name)=>LS.set('tcf_user',{name}),
+  logout:     ()=>localStorage.removeItem('tcf_user'),
+  getMoments: ()=>LS.get('tcf_moments',null),
+  saveMoments:(l)=>LS.set('tcf_moments',l)
+};
+const SPOT_NAME = {3:'张家界国家森林公园',2:'亚龙湾',9:'呼伦贝尔大草原'};
+const DEFAULT_MOMENTS = [
+ {id:1, user:'山城小鹿', spotId:3, text:'雨后的张家界云海真的绝了!御笔峰在云里若隐若现,像水墨画一样,建议住山顶看日出。', likes:128, liked:false, time:'2 小时前'},
+ {id:2, user:'海岛控阿哲', spotId:2, text:'亚龙湾水质确实好,浮潜看到了小丑鱼群。下午四点后人少,拍照光线也柔。', likes:96, liked:false, time:'5 小时前'},
+ {id:3, user:'背包客老周', spotId:9, text:'在呼伦贝尔骑马跑了三个小时,晚上蒙古包外肉眼可见银河,此生必去!', likes:210, liked:false, time:'昨天'}
+];
+
+const $ = id => document.getElementById(id);
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2200); }
+function openModal(id){ $(id).classList.add('show'); }
+function closeModal(id){ $(id).classList.remove('show'); }
+
+/* ---------- 登录 / 注册 / 退出 ---------- */
+const ACC_RE = /^1[3-9]\d{9}$|^[^\s@]+@[^\s@]+\.[^\s@]+$/;   // 手机号或邮箱
+const getUsers = ()=>LS.get('tcf_users',[]);
+
+function openLogin(){
+  const u = api.getUser();
+  if(u){ openModal('logoutModal'); return; }   // 已登录 → 弹出退出确认
+  openModal('loginModal'); switchAuth('login'); setTimeout(()=>$('liAccount').focus(),150);
+}
+function switchAuth(mode){
+  const m = $('loginModal'), isLogin = mode==='login';
+  const tabs = m.querySelectorAll('.auth-tab');
+  tabs[0].classList.toggle('on',isLogin); tabs[1].classList.toggle('on',!isLogin);
+  m.querySelector('.auth-slider').style.transform = isLogin ? 'translateX(0)' : 'translateX(100%)';
+  $('loginForm').style.display = isLogin ? '' : 'none';
+  $('regForm').style.display = isLogin ? 'none' : '';
+}
+function togglePwd(id, el){
+  const inp = $(id);
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  el.style.opacity = inp.type==='text' ? '1' : '.45';
+}
+function socialLogin(p){ toast(`${p}登录为演示入口,正式版通过 Spring Boot OAuth2 对接`); }
+
+function doLogin(e){
+  if(e) e.preventDefault();
+  const acc = $('liAccount').value.trim(), pwd = $('liPwd').value;
+  if(!acc){ toast('请输入手机号或邮箱'); $('liAccount').focus(); return false; }
+  if(!ACC_RE.test(acc)){ toast('账号格式不正确,应为手机号或邮箱'); $('liAccount').focus(); return false; }
+  if(!pwd){ toast('请输入密码'); $('liPwd').focus(); return false; }
+  const user = getUsers().find(u=>u.account===acc);
+  if(!user){ toast('该账号尚未注册,已为你切换到注册'); switchAuth('reg'); $('rgAccount').value=acc; $('rgName').focus(); return false; }
+  if(user.pwd!==pwd){ toast('密码错误,请重试'); $('liPwd').value=''; $('liPwd').focus(); return false; }
+  api.login(user.name);
+  closeModal('loginModal'); syncUser(); toast(`欢迎回来,${user.name}!`);
+  return false;
+}
+function doRegister(e){
+  if(e) e.preventDefault();
+  const name = $('rgName').value.trim(), acc = $('rgAccount').value.trim(), p1 = $('rgPwd').value, p2 = $('rgPwd2').value;
+  if(name.length<2){ toast('昵称至少 2 个字符'); $('rgName').focus(); return false; }
+  if(!ACC_RE.test(acc)){ toast('请输入正确的手机号或邮箱'); $('rgAccount').focus(); return false; }
+  if(p1.length<6){ toast('密码至少 6 位'); $('rgPwd').focus(); return false; }
+  if(p1!==p2){ toast('两次输入的密码不一致'); $('rgPwd2').focus(); return false; }
+  if(!$('rgAgree').checked){ toast('请先阅读并勾选用户协议'); return false; }
+  const users = getUsers();
+  if(users.some(u=>u.account===acc)){ toast('该账号已注册,请直接登录'); switchAuth('login'); $('liAccount').value=acc; $('liPwd').focus(); return false; }
+  users.push({name, account:acc, pwd:p1, time:Date.now()});   // 演示环境本地存储;正式版由后端 bcrypt 加密入库
+  LS.set('tcf_users',users);
+  api.login(name);
+  closeModal('loginModal'); syncUser(); toast(`注册成功,欢迎加入,${name}!`);
+  return false;
+}
+function doLogout(){
+  closeModal('logoutModal');
+  api.logout(); syncUser();
+  toast('👋 已安全退出,期待你的下一次旅程!');
+  setTimeout(()=>{ location.href = 'travel-app.html'; }, 900);   // 返回首页
+}
+function syncUser(){
+  const u = api.getUser();
+  $('userName').textContent = u ? u.name : '登录 / 注册';
+  $('userAvatar').textContent = u ? u.name[0].toUpperCase() : '登';
+  $('postAvatar').textContent = u ? u.name[0].toUpperCase() : '游';
+}
+
+/* ---------- 社区动态 ---------- */
+function renderMoments(){
+  let list = api.getMoments();
+  if(!list){ list = DEFAULT_MOMENTS; api.saveMoments(list); }
+  $('momentList').innerHTML = list.map(m=>{
+    const spot = m.spotId ? SPOT_NAME[m.spotId] : null;
+    return `<div class="moment">
+      <div class="mhead">
+        <div class="mav">${m.user[0]}</div>
+        <div><b>${m.user}</b><div class="mtime">${m.time}${spot?` · 在 <span class="mspot">${spot}</span> 打卡`:''}</div></div>
+      </div>
+      <div class="mtext">${m.text}</div>
+      <div class="mfoot">
+        <button class="${m.liked?'on':''}" onclick="likeMoment(${m.id})">${m.liked?'❤️':'🤍'} ${m.likes}</button>
+        <button onclick="toast('评论区演示:正式版对接 /api/comment/list')">💬 评论</button>
+        <button onclick="toast('已收藏该动态')">⭐ 收藏</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function likeMoment(id){
+  const list = api.getMoments();
+  const m = list.find(x=>x.id===id); if(!m) return;
+  m.liked = !m.liked; m.likes += m.liked?1:-1;
+  api.saveMoments(list); renderMoments();
+}
+function postMoment(){
+  const text = $('momentInput').value.trim();
+  if(!text){ toast('先写点内容再发布吧'); return; }
+  const u = api.getUser();
+  const list = api.getMoments() || DEFAULT_MOMENTS;
+  list.unshift({id:Date.now(), user:u?u.name:'热心游客', spotId:null, text, likes:0, liked:false, time:'刚刚'});
+  api.saveMoments(list);
+  $('momentInput').value='';
+  renderMoments(); toast('发布成功!');
+}
+
+/* ---------- 初始化 ---------- */
+syncUser(); renderMoments();
+document.querySelectorAll('.modal-mask').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('show'); }));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-mask.show').forEach(m=>m.classList.remove('show')); });
+const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

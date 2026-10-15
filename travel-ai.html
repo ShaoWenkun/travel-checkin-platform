@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 旅行规划师 · Travel足迹</title>
+<style>
+:root{
+  --primary:#0ea5a4; --primary-dark:#0f766e; --accent:#f59e0b;
+  --ink:#0f172a; --ink-2:#334155; --muted:#64748b;
+  --bg:#f8fafc; --card:#fff; --line:#e2e8f0;
+  --grad:linear-gradient(135deg,#0ea5a4 0%,#0284c7 100%);
+  --shadow:0 10px 30px -10px rgba(2,132,199,.25); --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+img{display:block;max-width:100%}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,textarea,select{font-family:inherit}
+.wrap{width:min(1160px,92%);margin:0 auto}
+
+nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);background:rgba(255,255,255,.88);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+.logo .dot{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:15px;box-shadow:var(--shadow)}
+/* 滑动式导航:悬停/选中时渐变胶囊滑入 */
+.nav-links{display:flex;gap:4px;font-size:14px;color:var(--ink-2)}
+.nav-links a{position:relative;padding:8px 16px;border-radius:999px;transition:color .25s;z-index:1;white-space:nowrap}
+.nav-links a::before{content:"";position:absolute;inset:0;border-radius:999px;background:var(--grad);opacity:0;transform:translateX(-14px) scaleX(.6);transition:all .32s cubic-bezier(.34,1.45,.5,1);z-index:-1}
+.nav-links a:hover::before,.nav-links a.on::before{opacity:1;transform:none}
+.nav-links a:hover,.nav-links a.on{color:#fff;font-weight:700}
+/* 移动端:横向滑动导航条 */
+@media(max-width:760px){
+  nav .wrap{flex-wrap:wrap;height:auto;padding:8px 0;row-gap:4px}
+  .nav-links{order:3;width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-links::-webkit-scrollbar{display:none}
+}
+.user-chip{display:flex;align-items:center;gap:8px;background:#f0fdfa;border:1px solid #99f6e4;color:var(--primary-dark);font-weight:700;font-size:13.5px;padding:7px 16px;border-radius:999px;cursor:pointer}
+.user-chip .avatar{width:24px;height:24px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:12px}
+
+.page{padding:44px 0 70px}
+.page-head{margin-bottom:24px}
+.page-head h1{font-size:clamp(24px,3.4vw,34px);font-weight:900}
+.page-head h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.page-head p{color:var(--muted);font-size:14px}
+
+.chat-shell{background:#f8fafc;border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 14px 34px -16px rgba(15,23,42,.16)}
+.chat-head{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--ink);color:#fff;font-weight:700;font-size:14.5px;flex-wrap:wrap}
+.chat-head .pulse{width:9px;height:9px;border-radius:50%;background:#34d399;box-shadow:0 0 0 4px rgba(52,211,153,.25);animation:pl 1.6s infinite}
+@keyframes pl{50%{box-shadow:0 0 0 8px rgba(52,211,153,.06)}}
+.chat-head .st{font-size:12px;color:#94a3b8;font-weight:400}
+.chat-head .hd-btns{margin-left:auto;display:flex;gap:8px}
+.chat-head .hbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#e2e8f0;font-size:12px;padding:4px 12px;border-radius:999px;transition:background .2s}
+.chat-head .hbtn:hover{background:rgba(255,255,255,.24)}
+#chatBox{height:520px;overflow-y:auto;padding:22px}
+.msg{display:flex;gap:10px;margin-bottom:16px;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}}
+.msg.user{justify-content:flex-end}
+.mav2{flex:none;width:36px;height:36px;border-radius:12px;background:var(--grad);display:grid;place-items:center;font-size:17px;box-shadow:var(--shadow)}
+.bubble{max-width:84%;padding:12px 16px;font-size:14px;line-height:1.75;border-radius:4px 16px 16px 16px;background:#fff;border:1px solid var(--line);color:var(--ink-2);word-break:break-word}
+.msg.user .bubble{background:var(--grad);color:#fff;border:none;border-radius:16px 4px 16px 16px;max-width:72%}
+.bubble .md-h{font-weight:800;font-size:15px;color:var(--ink);margin:8px 0 4px}
+.bubble .md-p{margin:2px 0}
+.bubble ul{margin:4px 0 6px 18px}
+.bubble li{margin:2px 0}
+.bubble code{background:#f1f5f9;border-radius:4px;padding:1px 6px;font-size:12.5px}
+.chat-input{display:flex;gap:10px;padding:14px 16px;border-top:1px solid var(--line);background:#fff;align-items:flex-end}
+.chat-input textarea{flex:1;border:1px solid var(--line);border-radius:16px;padding:11px 18px;font-size:14px;outline:none;resize:none;min-height:44px;max-height:160px;line-height:1.6;font-family:inherit;overflow-y:auto;transition:border .2s,box-shadow .2s}
+.chat-input textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,164,.12)}
+.chat-input button{background:var(--grad);color:#fff;font-weight:700;padding:0 26px;border-radius:999px;font-size:14px;transition:opacity .2s}
+.chat-input button:disabled{opacity:.5;cursor:not-allowed}
+.chat-chips{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-top:1px dashed var(--line)}
+.chat-chips span{font-size:12px;background:#f0fdfa;border:1px solid #99f6e4;color:var(--primary-dark);padding:4px 12px;border-radius:999px;cursor:pointer;transition:background .2s}
+.chat-chips span:hover{background:#ccfbf1}
+/* ---------- 目的地图片联想 ---------- */
+.dest-strip{margin-top:10px}
+.dst-hd{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px}
+.dst-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.dst-row::-webkit-scrollbar{display:none}
+.dcard{flex:0 0 150px;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.dcard:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.dcard img{width:150px;height:105px;object-fit:cover;display:block;background:#f1f5f9}
+.dcard b{display:block;font-size:12.5px;padding:6px 10px 0}
+.dcard i{display:block;font-style:normal;font-size:10.5px;color:var(--muted);padding:2px 10px 8px}
+
+.check-btn{background:var(--grad);color:#fff;font-size:13px;font-weight:700;padding:7px 18px;border-radius:999px;transition:all .2s}
+.check-btn:hover{box-shadow:var(--shadow)}
+.check-btn.done{background:#e2e8f0;color:var(--primary-dark);box-shadow:none}
+.check-btn.inline{margin-left:8px;padding:2px 12px;font-size:12px;vertical-align:middle}
+.typing-dots{display:inline-flex;gap:4px}
+.typing-dots i{width:6px;height:6px;border-radius:50%;background:var(--primary);animation:td 1s infinite}
+.typing-dots i:nth-child(2){animation-delay:.15s}
+.typing-dots i:nth-child(3){animation-delay:.3s}
+@keyframes td{0%,100%{opacity:.3}50%{opacity:1;transform:translateY(-3px)}}
+.plan-actions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
+.pabtn{font-size:13px;font-weight:700;padding:8px 18px;border-radius:999px;transition:all .2s;display:inline-flex}
+.pabtn.solid{background:var(--grad);color:#fff}
+.pabtn.solid:hover{box-shadow:var(--shadow)}
+.pabtn.line{border:1px solid var(--line);color:var(--ink-2);background:#fff}
+.pabtn.line:hover{border-color:var(--primary);color:var(--primary)}
+
+/* 本地演示引擎的行程卡片(未配置大模型时使用) */
+.plan-overview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.plan-overview span{font-size:12px;background:#f0fdfa;border:1px solid #99f6e4;color:var(--primary-dark);padding:4px 12px;border-radius:999px;font-weight:600}
+.plan-day{margin-top:12px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pd-head{background:linear-gradient(90deg,#0ea5a4,#0284c7);color:#fff;font-weight:800;font-size:13.5px;padding:9px 16px}
+.plan-spot{display:flex;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.pd-head + .plan-spot{border-top:none}
+.ps-time{flex:none;font-size:11px;font-weight:800;color:var(--primary);background:#f0fdfa;border-radius:8px;padding:4px 8px;align-self:flex-start;margin-top:4px}
+.plan-spot img{flex:none;width:56px;height:56px;border-radius:10px;object-fit:cover}
+.ps-info{flex:1;min-width:0}
+.ps-info b{font-size:14px}
+.ps-info span{font-size:11.5px;color:var(--muted);margin-left:6px}
+.ps-info p{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.plan-night{padding:10px 14px;font-size:12.5px;color:var(--muted);background:#f8fafc;border-top:1px dashed var(--line)}
+.plan-transfer{margin-top:12px;font-size:12.5px;color:#92400e;background:#fffbeb;border:1px dashed #fcd34d;border-radius:10px;padding:8px 14px}
+.plan-tips{margin-top:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:14px;padding:14px 18px;font-size:13px;color:#075985}
+.plan-tips b{display:block;margin-bottom:6px;color:#0369a1}
+.plan-tips ul{margin-left:18px}
+
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:20px;width:min(440px,100%);padding:28px;animation:pop .25s ease;max-height:90vh;overflow-y:auto}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+.modal h3{font-size:18px;margin-bottom:4px}
+.modal .msub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.modal .mimg{height:140px;width:100%;object-fit:cover;border-radius:12px;margin-bottom:16px}
+.star-row{display:flex;gap:6px;font-size:26px;margin-bottom:16px;justify-content:center}
+.star-row span{cursor:pointer;color:#e2e8f0;transition:transform .15s,color .15s}
+.star-row span.on{color:#f59e0b}
+.star-row span:hover{transform:scale(1.2)}
+.modal textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px;min-height:80px;resize:vertical;outline:none}
+.modal textarea:focus{border-color:var(--primary)}
+.modal input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:14px;outline:none;margin-bottom:14px}
+.modal input:focus{border-color:var(--primary)}
+.modal-btns{display:flex;gap:10px;margin-top:18px}
+.modal-btns .mbtn{flex:1;padding:11px 0;border-radius:999px;font-weight:700;font-size:14.5px;text-align:center}
+.mbtn.primary{background:var(--grad);color:#fff}
+.mbtn.ghost{background:#f1f5f9;color:var(--ink-2)}
+/* ---------- 登录 / 注册 / 退出 ---------- */
+.auth-modal{width:min(420px,100%);padding:30px 28px 26px;position:relative}
+.auth-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:#f1f5f9;color:var(--muted);font-size:13px;display:grid;place-items:center;transition:all .2s}
+.auth-close:hover{background:#fee2e2;color:#dc2626;transform:rotate(90deg)}
+.auth-brand{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;font-size:20px}
+.auth-brand .ab-dot{width:38px;height:38px;border-radius:12px;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:16px;box-shadow:var(--shadow)}
+.auth-brand em{font-style:normal;color:var(--primary)}
+.auth-sub{text-align:center;font-size:12.5px;color:var(--muted);margin:6px 0 18px}
+.auth-tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;background:#f1f5f9;border-radius:999px;padding:4px;margin-bottom:20px}
+.auth-slider{position:absolute;top:4px;left:4px;width:calc(50% - 4px);height:calc(100% - 8px);background:var(--grad);border-radius:999px;transition:transform .3s cubic-bezier(.34,1.3,.5,1);box-shadow:var(--shadow)}
+.auth-tab{position:relative;z-index:1;text-align:center;font-size:14px;font-weight:700;color:var(--muted);padding:8px 0;cursor:pointer;transition:color .25s}
+.auth-tab.on{color:#fff}
+.field{position:relative;margin-bottom:13px}
+.field .fico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.75;pointer-events:none}
+.field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 40px;font-size:13.5px;outline:none;transition:border .2s,box-shadow .2s;margin:0}
+.field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,164,.12)}
+.field .eye{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.45;cursor:pointer;transition:opacity .2s}
+.field .eye:hover{opacity:1}
+.auth-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin:2px 0 14px}
+.auth-row .ck{display:flex;align-items:center;gap:5px;cursor:pointer}
+.auth-row input[type=checkbox],.agree input[type=checkbox]{width:auto;margin:0;padding:0;border:none;accent-color:var(--primary)}
+.forgot{color:var(--primary);font-weight:600;cursor:pointer}
+.auth-submit{width:100%;padding:12px 0;border-radius:999px;font-size:15px;letter-spacing:2px}
+.auth-divider{display:flex;align-items:center;gap:12px;font-size:11.5px;color:#94a3b8;margin:18px 0 12px}
+.auth-divider i{flex:1;height:1px;background:var(--line)}
+.auth-social{display:flex;justify-content:center;gap:16px}
+.soc{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.soc:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.soc.wx{background:#22c55e}.soc.qq{background:#38bdf8}.soc.wb{background:#f43f5e}
+.agree{display:block;font-size:11.5px;color:var(--muted);margin:-2px 0 14px;cursor:pointer}
+.agree a{color:var(--primary);font-weight:600}
+.auth-tip{text-align:center;font-size:10.5px;color:#b6c2d1;margin-top:14px}
+.lg-icon{width:64px;height:64px;margin:2px auto 12px;border-radius:50%;background:linear-gradient(135deg,#e0f2f1,#f0fdfa);display:grid;place-items:center;font-size:30px}
+#toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:14px;padding:11px 24px;border-radius:999px;opacity:0;pointer-events:none;transition:all .3s;z-index:300;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#toast.show{opacity:1;transform:translateX(-50%)}
+footer{background:var(--ink);color:#94a3b8;padding:34px 0 24px;text-align:center;font-size:13px}
+footer b{color:#fff}
+footer b em{font-style:normal;color:#5eead4}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="travel-app.html"><span class="dot">旅</span>Travel<span style="color:var(--primary)">足迹</span></a>
+    <div class="nav-links">
+      <a href="travel-app.html">首页</a>
+      <a href="travel-ai.html" class="on">AI 规划师</a>
+      <a href="travel-spots.html">逛景点</a>
+      <a href="travel-footprint.html">我的足迹</a>
+      <a href="travel-moments.html">社区动态</a>
+    </div>
+    <button class="user-chip" onclick="openLogin()"><span class="avatar" id="userAvatar">登</span><span id="userName">登录 / 注册</span></button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="wrap">
+    <div class="page-head reveal">
+      <h1>🤖 AI <em>旅行规划师</em></h1>
+      <p>已接入开源免费大模型,自由对话:多日行程 / 路线交通 / 预算贴士 / 美食问答… · 行程内平台景点可直接打卡</p>
+    </div>
+    <div class="chat-shell reveal">
+      <div class="chat-head">
+        <span class="pulse"></span>AI 规划师 · 小旅<span class="st">已接入开源大模型 · 免费无需 Key</span>
+        <div class="hd-btns">
+          <button class="hbtn" onclick="clearChat()">🧹 新对话</button>
+        </div>
+      </div>
+      <div id="chatBox"></div>
+      <div class="chat-input">
+        <textarea id="aiInput" rows="1" placeholder="如:帮我规划 3 天云南古镇之旅 / 成都两天怎么玩?预算1500…(不限行数,Shift+Enter 换行)"></textarea>
+        <button id="sendBtn" onclick="sendAI()">发送 ✈️</button>
+      </div>
+      <div class="chat-chips">
+        <span onclick="askSample('帮我规划 3 天云南古镇慢生活之旅')">3天云南古镇游</span>
+        <span onclick="askSample('周末想去海边度假,帮我安排 2 天行程')">周末海岛度假</span>
+        <span onclick="askSample('5 天历史人文路线,想看长城和兵马俑')">5天历史人文线</span>
+        <span onclick="askSample('秋天爬山看云海,推荐 4 天行程')">4天山川云海行</span>
+        <span onclick="askSample('预算 2000,适合学生党的 3 天穷游去哪?')">学生党穷游</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 打卡弹窗 -->
+<div class="modal-mask" id="checkModal">
+  <div class="modal">
+    <h3 id="cmName">打卡</h3>
+    <p class="msub" id="cmLoc"></p>
+    <img class="mimg" id="cmImg" alt="">
+    <div class="star-row" id="starRow"></div>
+    <textarea id="cmNote" placeholder="记录此刻心情…(选填)"></textarea>
+    <div class="modal-btns">
+      <button class="mbtn ghost" onclick="closeModal('checkModal')">取消</button>
+      <button class="mbtn primary" onclick="confirmCheckin()">确认打卡</button>
+    </div>
+  </div>
+</div>
+
+<!-- 登录 / 注册弹窗 -->
+<div class="modal-mask" id="loginModal">
+  <div class="modal auth-modal">
+    <button class="auth-close" onclick="closeModal('loginModal')">✕</button>
+    <div class="auth-brand"><span class="ab-dot">旅</span>Travel<em>足迹</em></div>
+    <p class="auth-sub">记录每一站风景,点亮你的旅行地图</p>
+    <div class="auth-tabs">
+      <span class="auth-slider"></span>
+      <span class="auth-tab on" onclick="switchAuth('login')">登 录</span>
+      <span class="auth-tab" onclick="switchAuth('reg')">注 册</span>
+    </div>
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="field"><span class="fico">👤</span><input id="liAccount" placeholder="手机号 / 邮箱" autocomplete="username"></div>
+      <div class="field"><span class="fico">🔒</span><input id="liPwd" type="password" placeholder="密码" autocomplete="current-password"><span class="eye" onclick="togglePwd('liPwd',this)">👁</span></div>
+      <div class="auth-row">
+        <label class="ck"><input type="checkbox" id="liRemember" checked>记住我</label>
+        <a class="forgot" onclick="toast('演示环境:请联系管理员重置密码')">忘记密码?</a>
+      </div>
+      <button type="submit" class="mbtn primary auth-submit">登 录</button>
+      <div class="auth-divider"><i></i>其他登录方式<i></i></div>
+      <div class="auth-social">
+        <span class="soc wx" onclick="socialLogin('微信')">微</span>
+        <span class="soc qq" onclick="socialLogin('QQ')">Q</span>
+        <span class="soc wb" onclick="socialLogin('微博')">博</span>
+      </div>
+      <p class="auth-tip">演示环境:注册数据保存在本机浏览器 · 正式版由 Spring Boot + JWT + bcrypt 实现</p>
+    </form>
+    <form id="regForm" onsubmit="return doRegister(event)" style="display:none">
+      <div class="field"><span class="fico">😊</span><input id="rgName" placeholder="昵称(2-12位)" maxlength="12"></div>
+      <div class="field"><span class="fico">📱</span><input id="rgAccount" placeholder="手机号 / 邮箱"></div>
+      <div class="field"><span class="fico">🔒</span><input id="rgPwd" type="password" placeholder="密码(至少6位)"><span class="eye" onclick="togglePwd('rgPwd',this)">👁</span></div>
+      <div class="field"><span class="fico">✅</span><input id="rgPwd2" type="password" placeholder="确认密码"><span class="eye" onclick="togglePwd('rgPwd2',this)">👁</span></div>
+      <label class="agree"><input type="checkbox" id="rgAgree">我已阅读并同意 <a onclick="toast('演示环境:协议文档')">《用户协议》</a>与<a onclick="toast('演示环境:协议文档')">《隐私政策》</a></label>
+      <button type="submit" class="mbtn primary auth-submit">注 册 并 登 录</button>
+    </form>
+  </div>
+</div>
+
+<!-- 退出登录确认弹窗 -->
+<div class="modal-mask" id="logoutModal">
+  <div class="modal" style="width:min(360px,100%);text-align:center;padding:28px 24px 22px">
+    <div class="lg-icon">👋</div>
+    <h3 style="margin-bottom:4px">确认退出登录?</h3>
+    <p class="msub">退出后仍可浏览景点与推荐,重新登录即可找回你的打卡足迹</p>
+    <div class="modal-btns">
+      <button class="mbtn ghost" onclick="closeModal('logoutModal')">再逛逛</button>
+      <button class="mbtn primary" onclick="doLogout()">确认退出</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<footer>
+  <b>Travel<em>足迹</em></b> · AI 旅行规划师 · 已接入开源免费大模型(无需 API Key),异常时自动切换内置演示引擎
+</footer>
+
+<script>
+/* ---------- 数据层 ---------- */
+const LS = {
+  get:(k,d)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
+const api = {
+  getUser:    ()=>LS.get('tcf_user',null),
+  login:      (name)=>LS.set('tcf_user',{name}),
+  logout:     ()=>localStorage.removeItem('tcf_user'),
+  getCheckins:()=>LS.get('tcf_checkins',[]),
+  addCheckin: (c)=>{ const l=api.getCheckins(); l.unshift(c); LS.set('tcf_checkins',l); },
+  getFavs:    ()=>LS.get('tcf_favs',[]),
+  toggleFav:  (id)=>{ let f=api.getFavs(); f=f.includes(id)?f.filter(x=>x!==id):[...f,id]; LS.set('tcf_favs',f); return f.includes(id); },
+  getScores:  ()=>LS.get('tcf_scores',{}),
+  setScore:   (id,s)=>{ const m=api.getScores(); m[id]=s; LS.set('tcf_scores',m); }
+};
+const IMG = p => `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(p)}&image_size=landscape_4_3`;
+const SPOTS = [
+ {id:1, name:'丽江古城', city:'丽江', province:'云南', cat:'古镇', score:4.9, heat:9214, img:IMG('ancient town of Lijiang Yunnan China at dusk, traditional Naxi architecture, red lanterns, stone canal, travel photography')},
+ {id:2, name:'亚龙湾', city:'三亚', province:'海南', cat:'海岛', score:4.8, heat:7436, img:IMG('tropical beach in Sanya Hainan China, turquoise sea, white sand, coconut palms, sunny travel photography')},
+ {id:3, name:'张家界国家森林公园', city:'张家界', province:'湖南', cat:'山川', score:4.8, heat:8102, img:IMG('Zhangjiajie national forest park China, towering sandstone pillars in sea of clouds, lush green, epic travel photography')},
+ {id:4, name:'八达岭长城', city:'北京', province:'北京', cat:'历史', score:4.7, heat:5807, img:IMG('Great Wall of China winding over green mountains at sunset, golden dramatic sky, travel photography')},
+ {id:5, name:'西湖', city:'杭州', province:'浙江', cat:'城市', score:4.8, heat:6890, img:IMG('West Lake Hangzhou China, Leifeng pagoda by calm lake, willow trees, misty Jiangnan scenery, travel photography')},
+ {id:6, name:'鼓浪屿', city:'厦门', province:'福建', cat:'海岛', score:4.6, heat:5420, img:IMG('Gulangyu island Xiamen China, colonial architecture, piano island, bougainvillea flowers, seaside travel photography')},
+ {id:7, name:'九寨沟', city:'阿坝', province:'四川', cat:'山川', score:4.9, heat:7780, img:IMG('Jiuzhaigou valley Sichuan China, colorful turquoise lakes, waterfalls, autumn forest reflection, travel photography')},
+ {id:8, name:'秦始皇兵马俑', city:'西安', province:'陕西', cat:'历史', score:4.8, heat:6130, img:IMG('Terracotta Army museum Xian China, rows of ancient terracotta warriors in excavation pit, museum photography')},
+ {id:9, name:'呼伦贝尔大草原', city:'呼伦贝尔', province:'内蒙古', cat:'草原', score:4.7, heat:4320, img:IMG('Hulunbuir grassland Inner Mongolia China, endless green meadow, horses grazing, blue sky white clouds, travel photography')},
+ {id:10,name:'凤凰古城', city:'湘西', province:'湖南', cat:'古镇', score:4.6, heat:4980, img:IMG('Fenghuang ancient town Hunan China, stilt houses along Tuo river at night, lanterns reflection, travel photography')},
+ {id:11,name:'黄山', city:'黄山', province:'安徽', cat:'山川', score:4.9, heat:7210, img:IMG('Huangshan Yellow Mountains China, pine trees on granite peaks above sea of clouds at sunrise, epic travel photography')},
+ {id:12,name:'外滩', city:'上海', province:'上海', cat:'城市', score:4.7, heat:8340, img:IMG('Shanghai Bund skyline at night, Lujiazui skyscrapers neon lights across Huangpu river, city travel photography')}
+];
+
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r=>setTimeout(r,ms));
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2200); }
+function openModal(id){ $(id).classList.add('show'); }
+function closeModal(id){ $(id).classList.remove('show'); }
+function getSpot(id){ return SPOTS.find(s=>s.id===id); }
+
+/* ---------- 登录 / 注册 / 退出 ---------- */
+const ACC_RE = /^1[3-9]\d{9}$|^[^\s@]+@[^\s@]+\.[^\s@]+$/;   // 手机号或邮箱
+const getUsers = ()=>LS.get('tcf_users',[]);
+
+function openLogin(){
+  const u = api.getUser();
+  if(u){ openModal('logoutModal'); return; }   // 已登录 → 弹出退出确认
+  openModal('loginModal'); switchAuth('login'); setTimeout(()=>$('liAccount').focus(),150);
+}
+function switchAuth(mode){
+  const m = $('loginModal'), isLogin = mode==='login';
+  const tabs = m.querySelectorAll('.auth-tab');
+  tabs[0].classList.toggle('on',isLogin); tabs[1].classList.toggle('on',!isLogin);
+  m.querySelector('.auth-slider').style.transform = isLogin ? 'translateX(0)' : 'translateX(100%)';
+  $('loginForm').style.display = isLogin ? '' : 'none';
+  $('regForm').style.display = isLogin ? 'none' : '';
+}
+function togglePwd(id, el){
+  const inp = $(id);
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  el.style.opacity = inp.type==='text' ? '1' : '.45';
+}
+function socialLogin(p){ toast(`${p}登录为演示入口,正式版通过 Spring Boot OAuth2 对接`); }
+
+function doLogin(e){
+  if(e) e.preventDefault();
+  const acc = $('liAccount').value.trim(), pwd = $('liPwd').value;
+  if(!acc){ toast('请输入手机号或邮箱'); $('liAccount').focus(); return false; }
+  if(!ACC_RE.test(acc)){ toast('账号格式不正确,应为手机号或邮箱'); $('liAccount').focus(); return false; }
+  if(!pwd){ toast('请输入密码'); $('liPwd').focus(); return false; }
+  const user = getUsers().find(u=>u.account===acc);
+  if(!user){ toast('该账号尚未注册,已为你切换到注册'); switchAuth('reg'); $('rgAccount').value=acc; $('rgName').focus(); return false; }
+  if(user.pwd!==pwd){ toast('密码错误,请重试'); $('liPwd').value=''; $('liPwd').focus(); return false; }
+  api.login(user.name);
+  closeModal('loginModal'); syncUser(); toast(`欢迎回来,${user.name}!`);
+  return false;
+}
+function doRegister(e){
+  if(e) e.preventDefault();
+  const name = $('rgName').value.trim(), acc = $('rgAccount').value.trim(), p1 = $('rgPwd').value, p2 = $('rgPwd2').value;
+  if(name.length<2){ toast('昵称至少 2 个字符'); $('rgName').focus(); return false; }
+  if(!ACC_RE.test(acc)){ toast('请输入正确的手机号或邮箱'); $('rgAccount').focus(); return false; }
+  if(p1.length<6){ toast('密码至少 6 位'); $('rgPwd').focus(); return false; }
+  if(p1!==p2){ toast('两次输入的密码不一致'); $('rgPwd2').focus(); return false; }
+  if(!$('rgAgree').checked){ toast('请先阅读并勾选用户协议'); return false; }
+  const users = getUsers();
+  if(users.some(u=>u.account===acc)){ toast('该账号已注册,请直接登录'); switchAuth('login'); $('liAccount').value=acc; $('liPwd').focus(); return false; }
+  users.push({name, account:acc, pwd:p1, time:Date.now()});   // 演示环境本地存储;正式版由后端 bcrypt 加密入库
+  LS.set('tcf_users',users);
+  api.login(name);
+  closeModal('loginModal'); syncUser(); toast(`注册成功,欢迎加入,${name}!`);
+  return false;
+}
+function doLogout(){
+  closeModal('logoutModal');
+  api.logout(); syncUser();
+  toast('👋 已安全退出,期待你的下一次旅程!');
+  setTimeout(()=>{ location.href = 'travel-app.html'; }, 900);   // 返回首页
+}
+function syncUser(){
+  const u = api.getUser();
+  $('userName').textContent = u ? u.name : '登录 / 注册';
+  $('userAvatar').textContent = u ? u.name[0].toUpperCase() : '登';
+}
+
+/* ---------- 打卡 ---------- */
+let ckState = {spot:null, star:0};
+function onCheckin(id){
+  if(api.getCheckins().some(c=>c.spotId===id)){ toast('该景点已打卡,可在「我的足迹」中管理'); return; }
+  const s = getSpot(id);
+  ckState = {spot:id, star:0};
+  $('cmName').textContent = `📍 打卡 · ${s.name}`;
+  $('cmLoc').textContent = `${s.province} · ${s.city} · 当前评分 ★${s.score}`;
+  $('cmImg').src = s.img;
+  $('cmNote').value = '';
+  renderStars();
+  openModal('checkModal');
+}
+function renderStars(){
+  $('starRow').innerHTML = [1,2,3,4,5].map(i=>`<span class="${i<=ckState.star?'on':''}" onclick="setStar(${i})">★</span>`).join('') + `<span style="font-size:13px;color:var(--muted);align-self:center;margin-left:8px">${ckState.star?ckState.star+' 分':'为TA评分'}</span>`;
+}
+function setStar(i){ ckState.star=i; renderStars(); }
+function confirmCheckin(){
+  const id = ckState.spot; if(!id) return;
+  api.addCheckin({spotId:id, note:$('cmNote').value.trim(), time:Date.now()});
+  if(ckState.star) api.setScore(id, ckState.star);
+  closeModal('checkModal');
+  toast('打卡成功!足迹地图已点亮该城市 🎉');
+  // 更新本轮消息里的打卡按钮状态
+  document.querySelectorAll(`#chatBox .check-btn`).forEach(b=>{
+    if(b.getAttribute('onclick')===`onCheckin(${id})`){ b.classList.add('done'); b.textContent='✓ 已打卡'; }
+  });
+}
+
+/* ================================================================
+ * 大模型接入:开源免费直连(无需 API Key,零配置)
+ * Pollinations.AI 提供 OpenAI 兼容接口,免费聚合 Mistral / Qwen 等开源模型
+ * 主模型不可用时自动切换备用模型,仍失败则降级到内置演示引擎
+ * ================================================================ */
+const FREE_LLM = { url:'https://text.pollinations.ai/openai', models:['openai','mistral'] };
+
+/* ---------- System Prompt(注入平台景点库) ---------- */
+function SYSTEM_PROMPT(){
+  const lib = SPOTS.map(s=>`[${s.id}] ${s.name}|${s.province}·${s.city}|${s.cat}|评分${s.score}|标签:${s.cat}`).join('\n');
+  return `你是旅游打卡平台「Travel足迹」的 AI 旅行规划师「小旅」。当前日期 ${new Date().toLocaleDateString('zh-CN')}。
+平台景点库(引用景点时请尽量使用其中的准确名称,方便用户点击打卡):
+${lib}
+
+你的能力范围:多日行程规划、路线与交通建议、预算估算、行前贴士、目的地/美食/住宿/天气问答、旅行清单整理等。
+回答要求:
+1) 始终用中文,友好口语化,适当使用 emoji;
+2) 做行程规划时按「📅 Day N」分天组织,给出上午/下午/晚上安排,结尾附行前贴士与人均预算估算;
+3) 引用景点优先使用上面景点库中的准确名称;
+4) 使用简洁 Markdown(加粗、列表、小标题),不要输出代码块;
+5) 回答保持结构清晰、长度适中,避免冗长。`;
+}
+
+/* ---------- LLM 流式调用(SSE) ---------- */
+async function llmStream(url, model, messages, onDelta){
+  let res;
+  try{
+    res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model, messages, stream:true})
+    });
+  }catch(e){
+    throw new Error('网络连接失败,请检查网络后重试');
+  }
+  if(!res.ok){
+    let msg = 'HTTP '+res.status;
+    try{ const j = await res.json(); msg = j.error?.message || j.message || msg; }catch(_){}
+    if(res.status===429) msg = '请求过于频繁(429),免费通道限流,请稍后再试';
+    throw new Error(msg);
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  while(true){
+    const {done, value} = await reader.read();
+    if(done) break;
+    buf += dec.decode(value,{stream:true});
+    const lines = buf.split('\n'); buf = lines.pop();
+    for(const line of lines){
+      const t = line.trim();
+      if(!t.startsWith('data:')) continue;
+      const d = t.slice(5).trim();
+      if(d === '[DONE]') continue;
+      try{
+        const j = JSON.parse(d);
+        const c = j.choices?.[0]?.delta?.content;
+        if(c) onDelta(c);
+      }catch(_){}
+    }
+  }
+}
+
+/* ---------- 轻量 Markdown 渲染 + 景点打卡按钮注入 ---------- */
+function mdToHtml(md){
+  const esc = t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines = md.split('\n');
+  let html='', inList=false;
+  for(const raw of lines){
+    const line = raw.trimEnd();
+    const l = esc(line).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>');
+    if(/^\s*([-*•]|\d+[.、)])\s+/.test(line)){
+      if(!inList){ html+='<ul>'; inList=true; }
+      html += '<li>'+l.replace(/^\s*([-*•]|\d+[.、)])\s+/,'')+'</li>';
+      continue;
+    }
+    if(inList){ html+='</ul>'; inList=false; }
+    if(/^#{1,4}\s/.test(line)) html += '<div class="md-h">'+l.replace(/^#{1,4}\s/,'')+'</div>';
+    else if(line.trim()==='') html += '<div style="height:6px"></div>';
+    else html += '<div class="md-p">'+l+'</div>';
+  }
+  if(inList) html+='</ul>';
+  return html;
+}
+function ckBtnHTML(id){
+  const ckd = api.getCheckins().some(c=>c.spotId===id);
+  return `<button class="check-btn inline ${ckd?'done':''}" onclick="onCheckin(${id})">${ckd?'✓ 已打卡':'📍 打卡'}</button>`;
+}
+function injectCheckinMarkers(md){
+  SPOTS.forEach(s=>{
+    if(md.includes(`⟦CK:${s.id}⟧`)) return;
+    if(md.includes(s.name)) md = md.replace(s.name, s.name+`⟦CK:${s.id}⟧`);
+  });
+  return md;
+}
+function renderAIHtml(md){
+  let m = md.replace(/```[a-z]*\n?/gi,'');       // 去掉意外出现的代码块围栏
+  m = injectCheckinMarkers(m);
+  return mdToHtml(m).replace(/⟦CK:(\d+)⟧/g,(x,id)=>ckBtnHTML(+id));
+}
+
+/* ---------- 聊天 UI ---------- */
+const chatState = {busy:false, greeted:false};
+let chatHistory = [];   // 多轮对话上下文 [{role:'user'|'assistant',content}]
+
+function chatScroll(){ const b=$('chatBox'); b.scrollTop=b.scrollHeight; }
+function appendMsg(role, html){
+  const div = document.createElement('div');
+  div.className = 'msg '+role;
+  div.innerHTML = role==='ai' ? `<div class="mav2">🤖</div><div class="bubble">${html}</div>` : `<div class="bubble">${html}</div>`;
+  $('chatBox').appendChild(div); chatScroll();
+  return div.querySelector('.bubble');
+}
+function greet(){
+  if(chatState.greeted) return; chatState.greeted = true;
+  appendMsg('ai', `你好呀,我是 AI 旅行规划师「小旅」🧭<br>已接入<b>开源免费大模型</b>(无需任何 Key),可自由对话:多日行程规划、路线交通、预算贴士、美食住宿问答…<br>若在线通道繁忙,我会自动改用内置演示引擎,为你规划平台景点行程。<br><span style="color:var(--muted);font-size:12.5px">试试:“帮我规划 3 天云南古镇之旅”或“预算 1500 学生党穷游去哪”</span>`);
+}
+function askSample(q){
+  if(chatState.busy){ toast('AI 正在生成中,请稍候…'); return; }
+  $('aiInput').value = q; sendAI();
+}
+function setBusy(b){
+  chatState.busy = b;
+  $('sendBtn').disabled = b;
+}
+function clearChat(){
+  if(chatState.busy){ toast('AI 正在生成中,请稍候…'); return; }
+  chatHistory = [];
+  $('chatBox').innerHTML = '';
+  chatState.greeted = false; greet();
+}
+
+/* ---------- 发送入口:大模型 / 本地引擎 自动分流 ---------- */
+let lastQ = '';
+async function sendAI(){
+  if(chatState.busy){ toast('AI 正在生成中,请稍候…'); return; }
+  const v = $('aiInput').value.trim();
+  if(!v){ toast('先输入你的旅行想法吧'); return; }
+  $('aiInput').value = ''; $('aiInput').style.height = 'auto';
+  lastQ = v;
+  appendMsg('user', v.replace(/</g,'&lt;'));
+  await llmSend(v);
+}
+
+/* ---------- 大模型路径(免费直连,失败自动切换备用模型) ---------- */
+async function llmSend(text){
+  setBusy(true);
+  chatHistory.push({role:'user', content:text});
+  const msgs = [{role:'system', content:SYSTEM_PROMPT()}, ...chatHistory.slice(-16)];
+  const bubble = appendMsg('ai','<span class="typing-dots"><i></i><i></i><i></i></span>思考中…');
+  let acc = '', ok = false;
+  for(const model of FREE_LLM.models){
+    acc = '';
+    let first = true;
+    try{
+      await llmStream(FREE_LLM.url, model, msgs, delta=>{
+        if(first){ bubble.innerHTML=''; first=false; }
+        acc += delta;
+        bubble.innerHTML = renderAIHtml(acc);
+        chatScroll();
+      });
+      if(acc.trim()){ ok = true; break; }
+    }catch(e){ /* 该模型不可用,自动尝试下一个 */ }
+  }
+  if(ok){
+    chatHistory.push({role:'assistant', content:acc});
+    if(chatHistory.length > 20) chatHistory = chatHistory.slice(-16);
+    showDestImages(text, acc);   // 识别目的地 → 生成图片卡片
+  }else{
+    bubble.innerHTML = `<b>⚠️ 在线大模型暂时不可用(免费通道可能限流)</b><br><span style="font-size:12.5px;color:var(--muted)">可稍后重试,或先用内置演示引擎规划平台景点行程</span>
+      <div class="plan-actions">
+        <button class="pabtn line" onclick="retryLLM()">🔄 重试</button>
+        <button class="pabtn line" onclick="localFallback()">⚙️ 本地演示引擎</button>
+      </div>`;
+  }
+  setBusy(false); chatScroll();
+}
+function retryLLM(){
+  if(chatState.busy || !lastQ) return;
+  if(chatHistory[chatHistory.length-1]?.role==='user') chatHistory.pop();
+  // 移除错误气泡
+  const box = $('chatBox'); const last = box.lastElementChild;
+  if(last && last.classList.contains('msg') && last.classList.contains('ai')) last.remove();
+  llmSend(lastQ);
+}
+function localFallback(){ if(chatState.busy || !lastQ) return; localGenerate(lastQ); }
+
+/* ---------- 本地演示引擎(未配置大模型时的降级方案) ---------- */
+const CAT_ALIAS = {
+  '山川':['山川','爬山','登山','云海','徒步','奇峰','看山'],
+  '海岛':['海岛','海边','沙滩','潜水','看海','海滨'],
+  '古镇':['古镇','古城','古街','慢生活'],
+  '历史':['历史','人文','博物馆','古迹','兵马俑','长城'],
+  '城市':['城市','都市','夜景','摩天'],
+  '草原':['草原','骑马','星空','牧场']
+};
+const TIPS = {
+  '山川':'山区温差大,备防风外套与防滑徒步鞋,雨后初晴最易遇云海',
+  '海岛':'海边紫外线强,SPF50+ 防晒必备;浮潜选上午,水质最清',
+  '古镇':'清晨 8 点前进入古镇可避开人流,青石板路建议穿平底鞋',
+  '历史':'博物馆/遗址类建议提前线上预约,配讲解器体验更佳',
+  '城市':'日落后 20 分钟的"蓝调时刻"拍夜景最出片,市区优先地铁出行',
+  '草原':'草原昼夜温差可达 15℃,务必带厚外套;骑马请选正规马队'
+};
+function parseIntent(text){
+  let days = 3;
+  const m = text.match(/(\d{1,2})\s*[天日]/);
+  if(m) days = Math.min(7, Math.max(1, +m[1]));
+  if(/周末/.test(text) && !m) days = 2;
+  const cats = Object.keys(CAT_ALIAS).filter(c => CAT_ALIAS[c].some(a => text.includes(a)));
+  const regions = new Set();
+  SPOTS.forEach(s => [s.province, s.city, s.name].forEach(r => { if(r && text.includes(r)) regions.add(r); }));
+  return {days, cats, regions:[...regions]};
+}
+function pickSpots(it){
+  const n = Math.min(it.days*2, SPOTS.length);
+  return SPOTS.map(s => {
+    let sc = s.score*0.6 + s.heat/10000;
+    if(it.regions.some(r => s.province.includes(r) || s.city.includes(r) || s.name.includes(r))) sc += 3;
+    if(it.cats.includes(s.cat)) sc += 2.2;
+    return {s, sc};
+  }).sort((a,b)=>b.sc-a.sc).slice(0, n).map(x=>x.s);
+}
+function slotDesc(cat, slot, name){
+  const D = {
+    '古镇':{am:`清晨的${name}还没有人潮,青石板路与晨雾最出片`,pm:`午后钻进深巷找家老茶馆发呆,体验地道慢生活`},
+    '海岛':{am:`上午水质最清,安排浮潜或海边戏水`,pm:`下午环岛漫步/骑行,打卡网红机位`},
+    '山川':{am:`赶早登山,体力充沛且最容易遇到云海`,pm:`下午慢游核心景区栈道,近距离赏奇峰`},
+    '历史':{am:`上午参观${name},建议租讲解器深度游览`,pm:`下午继续探访周边遗迹与展馆,慢慢逛`},
+    '城市':{am:`上午游览${name},避开正午高温与人流`,pm:`下午逛特色街区,找家咖啡馆歇脚`},
+    '草原':{am:`上午骑马穿越草场,看牛羊成群`,pm:`下午访牧民家或湿地观鸟,体验草原生活`}
+  };
+  return (D[cat] || D['城市'])[slot];
+}
+function nightDesc(s){
+  const M = {'古镇':'夜游古镇,听民谣、看灯火倒映水面','海岛':'沙滩散步吹海风,来一顿海鲜烧烤','山川':'山下早点休整,为明天储备体力','历史':'逛老城夜市,感受古今交融的烟火气','城市':'登观景平台或沿江步道,拍夜景大片','草原':'参加篝火晚会,半夜起来看银河'};
+  return M[s.cat] || M['城市'];
+}
+function buildPlanBlocks(it, picks){
+  const blocks = [];
+  const theme = it.cats.length ? it.cats.join(' / ') : '经典热门';
+  const opener = it.regions.length
+    ? `收到!目的地锁定「${it.regions[0]}」周边,为你定制 <b>${it.days} 天</b>行程 🎒`
+    : it.cats.length
+      ? `收到!按「${it.cats.join('、')}」风格,为你规划 <b>${it.days} 天</b>行程 🎒`
+      : `为你精选平台口碑 Top 景点,定制 <b>${it.days} 天</b>经典行程 🎒`;
+  blocks.push(`${opener}<div class="plan-overview"><span>🗓 ${it.days} 天</span><span>📍 ${picks.length} 个景点</span><span>🎯 主题:${theme}</span><span>💰 约 ¥${it.days*450}-${it.days*650}/人(不含大交通)</span></div>`);
+
+  const sorted = [...picks].sort((a,b)=>a.city===b.city ? 0 : (a.city>b.city ? 1 : -1));
+  const per = Math.ceil(sorted.length / it.days);
+  const days = [];
+  for(let i=0;i<it.days;i++){ const c = sorted.slice(i*per,(i+1)*per); if(c.length) days.push(c); }
+
+  days.forEach((list, di)=>{
+    const transfer = di>0 && list[0].city!==days[di-1][0].city
+      ? `<div class="plan-transfer">🚄 Day ${di} 结束后由「${days[di-1][0].city}」前往「${list[0].city}」,建议高铁/飞机,并预留半天交通时间</div>` : '';
+    const rows = list.map((s, si)=>{
+      const slot = si===0 ? 'am' : 'pm', sn = si===0 ? '上午' : '下午';
+      return `<div class="plan-spot"><span class="ps-time">${sn}</span><img src="${s.img}" alt=""><div class="ps-info"><b>${s.name}</b><span>★${s.score} · ${s.province}·${s.city}</span><p>${slotDesc(s.cat, slot, s.name)}</p></div><button class="check-btn" onclick="onCheckin(${s.id})">打卡</button></div>`;
+    }).join('');
+    const dayCities = [...new Set(list.map(s=>s.city))].join(' / ');
+    blocks.push(`${transfer}<div class="plan-day"><div class="pd-head">📅 Day ${di+1} · ${dayCities}</div>${rows}<div class="plan-night">🌙 晚上:${nightDesc(list[list.length-1])}</div></div>`);
+  });
+
+  const tips = [...new Set(picks.map(s=>s.cat))].slice(0,3).map(c=>TIPS[c]).filter(Boolean);
+  tips.push('旺季出行,机票酒店建议提前 1-2 周预订');
+  blocks.push(`<div class="plan-tips"><b>📌 行前贴士</b><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul></div><div class="plan-actions"><button class="pabtn solid" onclick="favPlan([${picks.map(s=>s.id).join(',')}])">❤️ 收藏行程内全部景点</button><a class="pabtn line" href="travel-spots.html">去景点库看看 →</a></div>`);
+  return blocks;
+}
+function favPlan(ids){
+  let added = 0;
+  ids.forEach(id => { if(!api.getFavs().includes(id)){ api.toggleFav(id); added++; } });
+  toast(added ? `已收藏 ${added} 个行程景点` : '行程内景点均已收藏');
+}
+async function localGenerate(text){
+  setBusy(true);
+  const thinking = appendMsg('ai','<span class="typing-dots"><i></i><i></i><i></i></span>正在分析你的偏好,匹配景点库与路线…');
+  await wait(800 + Math.random()*500);
+  const it = parseIntent(text);
+  const blocks = buildPlanBlocks(it, pickSpots(it));
+  thinking.closest('.msg').remove();
+  for(const b of blocks){ appendMsg('ai', b); await wait(300); }
+  showDestImages(text, blocks.join(''));   // 行程内目的地图片
+  setBusy(false);
+}
+
+/* ---------- 目的地图片联想(识别地点 → 匹配平台景点 / AI 生成图片) ---------- */
+const DEST_HINTS = ['北京','上海','天津','重庆','广州','深圳','成都','西安','杭州','南京','苏州','武汉','长沙','厦门','青岛','大连','哈尔滨','昆明','大理','丽江','香格里拉','西双版纳','桂林','阳朔','三亚','海口','张家界','凤凰','平遥','乌镇','西塘','周庄','南浔','宏村','婺源','黄山','九华山','五台山','普陀山','峨眉山','乐山','青城山','都江堰','四姑娘山','稻城','亚丁','泸沽湖','洱海','九寨沟','黄龙','黄果树','庐山','武夷山','泰山','华山','嵩山','衡山','恒山','长白山','漠河','拉萨','林芝','日喀则','敦煌','张掖','嘉峪关','兰州','西宁','青海湖','乌鲁木齐','喀纳斯','伊犁','吐鲁番','呼伦贝尔','锡林郭勒','鄂尔多斯','银川','延安','洛阳','开封','承德','秦皇岛','沈阳','长春','景德镇','泉州','汕头','潮州','北海','涠洲岛','香港','澳门','台北','垦丁','花莲','东京','大阪','京都','奈良','北海道','首尔','济州岛','曼谷','清迈','普吉岛','芭提雅','新加坡','巴厘岛','长滩岛','马尔代夫','迪拜','巴黎','伦敦','罗马','威尼斯','佛罗伦萨','巴塞罗那','瑞士','冰岛','新西兰','悉尼','墨尔本','土耳其','埃及','圣托里尼'];
+const STOP_WORDS = ['这里','哪里','什么','怎么','哪些','我们','你们','他们','大家','国家','地方','时间','时候','如果','可以','需要','建议','推荐','那个','这个','其中','之一','上下','左右','特色','当地','附近','周边','酒店','民宿','门票','美食','小吃','预算','天气','季节','交通','高铁','飞机','地铁','上午','下午','晚上','中午','市里','省里','下山','上山','出境','游客','景区','景点','山水','风光','第一天','第二天','最后'];
+function extractDests(text){
+  const out = [], seen = new Set();
+  const push = o=>{ if(o && o.key && !seen.has(o.key) && out.length<6){ seen.add(o.key); out.push(o); } };
+  /* 1) 平台景点库优先匹配 */
+  SPOTS.forEach(s=>{ if(text.includes(s.name)) push({spot:s, key:s.name}); });
+  SPOTS.forEach(s=>{ if(!seen.has(s.city) && text.includes(s.city)) push({spot:s, key:s.city}); });
+  /* 2) 常见目的地词库 */
+  DEST_HINTS.forEach(d=>{ if(text.includes(d) && !out.some(o=>o.spot && (o.spot.city===d || o.spot.province===d))) push({name:d, key:d}); });
+  /* 3) 动态识别:XX市/省/州/古城/古镇/风景区 + “去/在XX” + “XX之旅/自由行” */
+  const RE = /([\u4e00-\u9fa5]{2,5}(?:市|省|自治区|州|地区|古城|古镇|群岛|风景区))|去([\u4e00-\u9fa5]{2,5})|在([\u4e00-\u9fa5]{2,5})|([\u4e00-\u9fa5]{2,5})(?:之旅|自由行)/g;
+  let m;
+  while((m = RE.exec(text)) && out.length < 6){
+    const raw = (m[1]||m[2]||m[3]||m[4]||'').replace(/(市|省|古城|古镇|风景区)$/,'');
+    if(raw.length>=2 && raw.length<=5 && !STOP_WORDS.some(w=>raw.includes(w))) push({name:raw, key:raw});
+  }
+  return out;
+}
+function destStripHTML(list){
+  if(!list.length) return '';
+  const gen = n=>`https://image.pollinations.ai/prompt/${encodeURIComponent(n+' famous landmark scenic view, beautiful landscape, travel photography, high quality')}?width=480&height=360&nologo=true`;
+  const fallback = n=>`this.onerror=null;this.src='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt='+encodeURIComponent('${n} landmark scenic view, travel photography')+'&image_size=landscape_4_3'`;
+  const cards = list.map(d=>{
+    if(d.spot){
+      return `<div class="dcard"><img src="${d.spot.img}" alt="${d.spot.name}" loading="lazy"><b>${d.spot.name}</b><i>平台景点 · ${d.spot.province} ${d.spot.city}</i></div>`;
+    }
+    return `<div class="dcard"><img src="${gen(d.name)}" alt="${d.name}" loading="lazy" onerror="${fallback(d.name)}"><b>${d.name}</b><i>AI 生成图片</i></div>`;
+  }).join('');
+  return `<div class="dest-strip"><div class="dst-hd">🖼️ 已为你生成相关地点的图片</div><div class="dst-row">${cards}</div></div>`;
+}
+function showDestImages(q, reply){
+  const list = extractDests(`${q||''} ${reply||''}`);
+  if(list.length) appendMsg('ai', destStripHTML(list));
+}
+
+/* ---------- 初始化 ---------- */
+syncUser(); greet();
+const aiIn = $('aiInput');
+aiIn.addEventListener('input',()=>{ aiIn.style.height='auto'; aiIn.style.height=Math.min(aiIn.scrollHeight,160)+'px'; });
+aiIn.addEventListener('keydown',e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendAI(); } });
+const presetQ = sessionStorage.getItem('tcf_ai_q');
+if(presetQ){ sessionStorage.removeItem('tcf_ai_q'); setTimeout(()=>{ $('aiInput').value = presetQ; sendAI(); }, 600); }
+document.querySelectorAll('.modal-mask').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('show'); }));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-mask.show').forEach(m=>m.classList.remove('show')); });
+const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

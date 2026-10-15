@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel足迹 · 旅游打卡平台</title>
+<style>
+:root{
+  --primary:#0ea5a4; --primary-dark:#0f766e; --accent:#f59e0b;
+  --ink:#0f172a; --ink-2:#334155; --muted:#64748b;
+  --bg:#f8fafc; --card:#fff; --line:#e2e8f0;
+  --grad:linear-gradient(135deg,#0ea5a4 0%,#0284c7 100%);
+  --shadow:0 10px 30px -10px rgba(2,132,199,.25); --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input{font-family:inherit}
+.wrap{width:min(1160px,92%);margin:0 auto}
+section{padding:64px 0}
+.tag{display:inline-block;font-size:12px;letter-spacing:.15em;color:var(--primary);font-weight:700;text-transform:uppercase;margin-bottom:8px}
+h2.sec-title{font-size:28px;font-weight:800}
+.sec-sub{color:var(--muted);font-size:14px;margin-top:4px}
+.sec-head{margin-bottom:30px}
+
+/* ---------- Nav ---------- */
+nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(14px);background:rgba(255,255,255,.88);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+.logo .dot{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:15px;box-shadow:var(--shadow)}
+/* 滑动式导航:悬停/选中时渐变胶囊滑入 */
+.nav-links{display:flex;gap:4px;font-size:14px;color:var(--ink-2)}
+.nav-links a{position:relative;padding:8px 16px;border-radius:999px;transition:color .25s;z-index:1;white-space:nowrap}
+.nav-links a::before{content:"";position:absolute;inset:0;border-radius:999px;background:var(--grad);opacity:0;transform:translateX(-14px) scaleX(.6);transition:all .32s cubic-bezier(.34,1.45,.5,1);z-index:-1}
+.nav-links a:hover::before,.nav-links a.on::before{opacity:1;transform:none}
+.nav-links a:hover,.nav-links a.on{color:#fff;font-weight:700}
+/* 移动端:横向滑动导航条 */
+@media(max-width:760px){
+  nav .wrap{flex-wrap:wrap;height:auto;padding:8px 0;row-gap:4px}
+  .nav-links{order:3;width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .nav-links::-webkit-scrollbar{display:none}
+}
+.user-chip{display:flex;align-items:center;gap:8px;background:#f0fdfa;border:1px solid #99f6e4;color:var(--primary-dark);font-weight:700;font-size:13.5px;padding:7px 16px;border-radius:999px;transition:box-shadow .2s}
+.user-chip:hover{box-shadow:var(--shadow)}
+.user-chip .avatar{width:24px;height:24px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:12px}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;color:#fff;overflow:hidden;padding:96px 0 82px}
+.hero::before{content:"";position:absolute;inset:0;background:url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Dali%20Erhai%20lake%20Yunnan%20China%20at%20sunrise%2C%20Cangshan%20mountain%20reflection%2C%20soft%20mist%2C%20serene%20travel%20photography%2C%20teal%20golden%20tones&image_size=landscape_16_9") center/cover no-repeat}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,20,30,.5),rgba(2,20,30,.42) 55%,rgba(2,20,30,.72))}
+.hero .wrap{position:relative;z-index:2;text-align:center}
+.hero h1{font-size:clamp(28px,4.4vw,46px);font-weight:900;text-shadow:0 4px 24px rgba(0,0,0,.35)}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,#5eead4,#fde68a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin:14px auto 30px;max-width:560px;color:rgba(255,255,255,.88);font-size:15.5px}
+.search-box{display:flex;max-width:620px;margin:0 auto;background:#fff;border-radius:999px;padding:6px;box-shadow:0 18px 40px -12px rgba(0,0,0,.4)}
+.ai-box{animation:aiGlow 2.6s ease-in-out infinite}
+@keyframes aiGlow{0%,100%{box-shadow:0 0 0 3px rgba(94,234,212,.32),0 18px 40px -12px rgba(0,0,0,.4)}50%{box-shadow:0 0 0 7px rgba(94,234,212,.16),0 18px 40px -12px rgba(0,0,0,.4)}}
+.ai-ico{display:grid;place-items:center;padding-left:18px;font-size:19px}
+.search-box input{flex:1;border:none;outline:none;padding:10px 18px;font-size:15px;border-radius:999px;color:var(--ink)}
+.search-box button{background:var(--grad);color:#fff;font-weight:700;font-size:15px;padding:11px 30px;border-radius:999px;transition:opacity .2s}
+.search-box button:hover{opacity:.9}
+.hero-tags{margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hero-tags span{font-size:12.5px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:4px 14px;border-radius:999px;cursor:pointer;transition:background .2s;backdrop-filter:blur(4px)}
+.hero-tags span:hover{background:rgba(255,255,255,.3)}
+
+/* ---------- 功能入口卡 ---------- */
+.func-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+@media(max-width:760px){.func-grid{grid-template-columns:1fr}}
+.func-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:32px 30px;overflow:hidden;transition:transform .25s,box-shadow .25s;display:block}
+.func-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--grad);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.func-card:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.func-card:hover::before{transform:scaleX(1)}
+.func-card .fico{width:54px;height:54px;border-radius:15px;background:rgba(14,165,164,.1);display:grid;place-items:center;font-size:26px;margin-bottom:16px}
+.func-card h3{font-size:19px;margin-bottom:8px}
+.func-card p{font-size:14px;color:var(--muted);min-height:44px}
+.func-card p b{color:var(--primary-dark);font-size:17px}
+.fgo{display:inline-flex;margin-top:16px;font-size:13.5px;font-weight:800;color:var(--primary);transition:transform .2s}
+.func-card:hover .fgo{transform:translateX(5px)}
+.func-card.dark{background:var(--ink);border-color:rgba(94,234,212,.2);color:#e2e8f0}
+.func-card.dark h3{color:#fff}
+.func-card.dark p{color:#94a3b8}
+.func-card.dark p b{color:#5eead4}
+.func-card.dark .fico{background:rgba(94,234,212,.12)}
+.func-card.dark .fgo{color:#5eead4}
+
+/* ---------- 登录弹窗 / Toast ---------- */
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:20px;width:min(440px,100%);padding:28px;animation:pop .25s ease}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+.modal h3{font-size:18px;margin-bottom:4px}
+.modal .msub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.modal input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:14px;outline:none;margin-bottom:14px}
+.modal input:focus{border-color:var(--primary)}
+.modal-btns{display:flex;gap:10px;margin-top:4px}
+.modal-btns .mbtn{flex:1;padding:11px 0;border-radius:999px;font-weight:700;font-size:14.5px;text-align:center}
+.mbtn.primary{background:var(--grad);color:#fff}
+.mbtn.ghost{background:#f1f5f9;color:var(--ink-2)}
+/* ---------- 登录 / 注册 / 退出 ---------- */
+.auth-modal{width:min(420px,100%);padding:30px 28px 26px;position:relative}
+.auth-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;background:#f1f5f9;color:var(--muted);font-size:13px;display:grid;place-items:center;transition:all .2s}
+.auth-close:hover{background:#fee2e2;color:#dc2626;transform:rotate(90deg)}
+.auth-brand{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;font-size:20px}
+.auth-brand .ab-dot{width:38px;height:38px;border-radius:12px;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:16px;box-shadow:var(--shadow)}
+.auth-brand em{font-style:normal;color:var(--primary)}
+.auth-sub{text-align:center;font-size:12.5px;color:var(--muted);margin:6px 0 18px}
+.auth-tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;background:#f1f5f9;border-radius:999px;padding:4px;margin-bottom:20px}
+.auth-slider{position:absolute;top:4px;left:4px;width:calc(50% - 4px);height:calc(100% - 8px);background:var(--grad);border-radius:999px;transition:transform .3s cubic-bezier(.34,1.3,.5,1);box-shadow:var(--shadow)}
+.auth-tab{position:relative;z-index:1;text-align:center;font-size:14px;font-weight:700;color:var(--muted);padding:8px 0;cursor:pointer;transition:color .25s}
+.auth-tab.on{color:#fff}
+.field{position:relative;margin-bottom:13px}
+.field .fico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.75;pointer-events:none}
+.field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 40px;font-size:13.5px;outline:none;transition:border .2s,box-shadow .2s;margin:0}
+.field input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,164,.12)}
+.field .eye{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.45;cursor:pointer;transition:opacity .2s}
+.field .eye:hover{opacity:1}
+.auth-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin:2px 0 14px}
+.auth-row .ck{display:flex;align-items:center;gap:5px;cursor:pointer}
+.auth-row input[type=checkbox],.agree input[type=checkbox]{width:auto;margin:0;padding:0;border:none;accent-color:var(--primary)}
+.forgot{color:var(--primary);font-weight:600;cursor:pointer}
+.auth-submit{width:100%;padding:12px 0;border-radius:999px;font-size:15px;letter-spacing:2px}
+.auth-divider{display:flex;align-items:center;gap:12px;font-size:11.5px;color:#94a3b8;margin:18px 0 12px}
+.auth-divider i{flex:1;height:1px;background:var(--line)}
+.auth-social{display:flex;justify-content:center;gap:16px}
+.soc{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.soc:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.soc.wx{background:#22c55e}.soc.qq{background:#38bdf8}.soc.wb{background:#f43f5e}
+.agree{display:block;font-size:11.5px;color:var(--muted);margin:-2px 0 14px;cursor:pointer}
+.agree a{color:var(--primary);font-weight:600}
+.auth-tip{text-align:center;font-size:10.5px;color:#b6c2d1;margin-top:14px}
+.lg-icon{width:64px;height:64px;margin:2px auto 12px;border-radius:50%;background:linear-gradient(135deg,#e0f2f1,#f0fdfa);display:grid;place-items:center;font-size:30px}
+#toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:14px;padding:11px 24px;border-radius:999px;opacity:0;pointer-events:none;transition:all .3s;z-index:300;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#toast.show{opacity:1;transform:translateX(-50%)}
+footer{background:var(--ink);color:#94a3b8;padding:40px 0 26px;text-align:center;font-size:13px}
+footer b{color:#fff;font-size:16px}
+footer b em{font-style:normal;color:#5eead4}
+footer .fmeta{margin-top:14px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);font-size:12.5px;color:#64748b}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="travel-app.html"><span class="dot">旅</span>Travel<span style="color:var(--primary)">足迹</span></a>
+    <div class="nav-links">
+      <a href="travel-app.html" class="on">首页</a>
+      <a href="travel-ai.html">AI 规划师</a>
+      <a href="travel-spots.html">逛景点</a>
+      <a href="travel-footprint.html">我的足迹</a>
+      <a href="travel-moments.html">社区动态</a>
+    </div>
+    <button class="user-chip" onclick="openLogin()"><span class="avatar" id="userAvatar">登</span><span id="userName">登录 / 注册</span></button>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <h1>记录每一站 <em>风景</em>,点亮你的旅行地图</h1>
+    <p>AI 智能生成行程 · 景点打卡收藏 · 足迹地图点亮中国 · 基于协同过滤的个性化推荐</p>
+    <div class="search-box ai-box">
+      <span class="ai-ico">🤖</span>
+      <input id="heroAI" placeholder="告诉 AI 你的旅行想法,如:帮我规划 3 天云南古镇之旅…" onkeydown="if(event.key==='Enter')heroAsk()">
+      <button onclick="heroAsk()">生成行程</button>
+    </div>
+    <div class="hero-tags">
+      <span onclick="heroAsk('帮我规划 3 天云南古镇慢生活之旅')">✨ 3天云南古镇游</span>
+      <span onclick="heroAsk('周末想去海边度假,帮我安排 2 天行程')">✨ 周末海岛度假</span>
+      <span onclick="heroAsk('5 天历史人文路线,想看长城和兵马俑')">✨ 5天历史人文线</span>
+      <span onclick="heroAsk('秋天爬山看云海,推荐 4 天行程')">✨ 4天山川云海行</span>
+    </div>
+  </div>
+</header>
+
+<section id="funcs">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="tag">Platform Features</span>
+      <h2 class="sec-title">平台功能</h2>
+      <p class="sec-sub">四大核心功能,点击卡片进入对应页面</p>
+    </div>
+    <div class="func-grid">
+      <a class="func-card reveal" href="travel-ai.html">
+        <div class="fico">🤖</div>
+        <h3>AI 旅行规划师</h3>
+        <p>描述目的地、天数与偏好,AI 自动生成含路线节奏与行前贴士的完整多日行程</p>
+        <span class="fgo">开始规划 →</span>
+      </a>
+      <a class="func-card reveal" href="travel-spots.html">
+        <div class="fico">🏞️</div>
+        <h3>逛景点</h3>
+        <p>12 个精选景点,搜索筛选、评分打卡、收藏;协同过滤"猜你喜欢"个性化推荐</p>
+        <span class="fgo">去探索 →</span>
+      </a>
+      <a class="func-card dark reveal" href="travel-footprint.html">
+        <div class="fico">🗺️</div>
+        <h3>我的足迹地图</h3>
+        <p>已点亮 <b id="fpCityNum">0</b> / 12 座城市 · 打卡城市在中国地图上逐一点亮,连线成你的旅行轨迹</p>
+        <span class="fgo">查看足迹地图 →</span>
+      </a>
+      <a class="func-card reveal" href="travel-moments.html">
+        <div class="fico">💬</div>
+        <h3>社区动态</h3>
+        <p>分享你的旅途见闻,看看同好们最近去了哪里 · 已有 <b id="momentCount">0</b> 条动态</p>
+        <span class="fgo">逛逛社区 →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- 登录 / 注册弹窗 -->
+<div class="modal-mask" id="loginModal">
+  <div class="modal auth-modal">
+    <button class="auth-close" onclick="closeModal('loginModal')">✕</button>
+    <div class="auth-brand"><span class="ab-dot">旅</span>Travel<em>足迹</em></div>
+    <p class="auth-sub">记录每一站风景,点亮你的旅行地图</p>
+    <div class="auth-tabs">
+      <span class="auth-slider"></span>
+      <span class="auth-tab on" onclick="switchAuth('login')">登 录</span>
+      <span class="auth-tab" onclick="switchAuth('reg')">注 册</span>
+    </div>
+    <form id="loginForm" onsubmit="return doLogin(event)">
+      <div class="field"><span class="fico">👤</span><input id="liAccount" placeholder="手机号 / 邮箱" autocomplete="username"></div>
+      <div class="field"><span class="fico">🔒</span><input id="liPwd" type="password" placeholder="密码" autocomplete="current-password"><span class="eye" onclick="togglePwd('liPwd',this)">👁</span></div>
+      <div class="auth-row">
+        <label class="ck"><input type="checkbox" id="liRemember" checked>记住我</label>
+        <a class="forgot" onclick="toast('演示环境:请联系管理员重置密码')">忘记密码?</a>
+      </div>
+      <button type="submit" class="mbtn primary auth-submit">登 录</button>
+      <div class="auth-divider"><i></i>其他登录方式<i></i></div>
+      <div class="auth-social">
+        <span class="soc wx" onclick="socialLogin('微信')">微</span>
+        <span class="soc qq" onclick="socialLogin('QQ')">Q</span>
+        <span class="soc wb" onclick="socialLogin('微博')">博</span>
+      </div>
+      <p class="auth-tip">演示环境:注册数据保存在本机浏览器 · 正式版由 Spring Boot + JWT + bcrypt 实现</p>
+    </form>
+    <form id="regForm" onsubmit="return doRegister(event)" style="display:none">
+      <div class="field"><span class="fico">😊</span><input id="rgName" placeholder="昵称(2-12位)" maxlength="12"></div>
+      <div class="field"><span class="fico">📱</span><input id="rgAccount" placeholder="手机号 / 邮箱"></div>
+      <div class="field"><span class="fico">🔒</span><input id="rgPwd" type="password" placeholder="密码(至少6位)"><span class="eye" onclick="togglePwd('rgPwd',this)">👁</span></div>
+      <div class="field"><span class="fico">✅</span><input id="rgPwd2" type="password" placeholder="确认密码"><span class="eye" onclick="togglePwd('rgPwd2',this)">👁</span></div>
+      <label class="agree"><input type="checkbox" id="rgAgree">我已阅读并同意 <a onclick="toast('演示环境:协议文档')">《用户协议》</a>与<a onclick="toast('演示环境:协议文档')">《隐私政策》</a></label>
+      <button type="submit" class="mbtn primary auth-submit">注 册 并 登 录</button>
+    </form>
+  </div>
+</div>
+
+<!-- 退出登录确认弹窗 -->
+<div class="modal-mask" id="logoutModal">
+  <div class="modal" style="width:min(360px,100%);text-align:center;padding:28px 24px 22px">
+    <div class="lg-icon">👋</div>
+    <h3 style="margin-bottom:4px">确认退出登录?</h3>
+    <p class="msub">退出后仍可浏览景点与推荐,重新登录即可找回你的打卡足迹</p>
+    <div class="modal-btns">
+      <button class="mbtn ghost" onclick="closeModal('logoutModal')">再逛逛</button>
+      <button class="mbtn primary" onclick="doLogout()">确认退出</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<footer>
+  <b>Travel<em>足迹</em></b>
+  <p>基于 Vue + Spring Boot + 协同过滤的旅游打卡平台 · 前端演示版(数据存储于浏览器本地)</p>
+  <div class="fmeta">前端:Vue 3 / Element Plus · 后端:Spring Boot 3 / MyBatis-Plus · 算法:UserCF 协同过滤 · 存储:MySQL / Redis / OSS</div>
+</footer>
+
+<script>
+/* ---------- 数据层(各页面共用同一 localStorage) ---------- */
+const LS = {
+  get:(k,d)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
+};
+const api = {
+  getUser:    ()=>LS.get('tcf_user',null),
+  login:      (name)=>LS.set('tcf_user',{name}),
+  logout:     ()=>localStorage.removeItem('tcf_user'),
+  getCheckins:()=>LS.get('tcf_checkins',[]),
+  getMoments: ()=>LS.get('tcf_moments',null)
+};
+const SPOT_CITY = {1:'丽江',2:'三亚',3:'张家界',4:'北京',5:'杭州',6:'厦门',7:'阿坝',8:'西安',9:'呼伦贝尔',10:'湘西',11:'黄山',12:'上海'};
+
+const $ = id => document.getElementById(id);
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2200); }
+function openModal(id){ $(id).classList.add('show'); }
+function closeModal(id){ $(id).classList.remove('show'); }
+
+/* ---------- 登录 / 注册 / 退出 ---------- */
+const ACC_RE = /^1[3-9]\d{9}$|^[^\s@]+@[^\s@]+\.[^\s@]+$/;   // 手机号或邮箱
+const getUsers = ()=>LS.get('tcf_users',[]);
+
+function openLogin(){
+  const u = api.getUser();
+  if(u){ openModal('logoutModal'); return; }   // 已登录 → 弹出退出确认
+  openModal('loginModal'); switchAuth('login'); setTimeout(()=>$('liAccount').focus(),150);
+}
+function switchAuth(mode){
+  const m = $('loginModal'), isLogin = mode==='login';
+  const tabs = m.querySelectorAll('.auth-tab');
+  tabs[0].classList.toggle('on',isLogin); tabs[1].classList.toggle('on',!isLogin);
+  m.querySelector('.auth-slider').style.transform = isLogin ? 'translateX(0)' : 'translateX(100%)';
+  $('loginForm').style.display = isLogin ? '' : 'none';
+  $('regForm').style.display = isLogin ? 'none' : '';
+}
+function togglePwd(id, el){
+  const inp = $(id);
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  el.style.opacity = inp.type==='text' ? '1' : '.45';
+}
+function socialLogin(p){ toast(`${p}登录为演示入口,正式版通过 Spring Boot OAuth2 对接`); }
+
+function doLogin(e){
+  if(e) e.preventDefault();
+  const acc = $('liAccount').value.trim(), pwd = $('liPwd').value;
+  if(!acc){ toast('请输入手机号或邮箱'); $('liAccount').focus(); return false; }
+  if(!ACC_RE.test(acc)){ toast('账号格式不正确,应为手机号或邮箱'); $('liAccount').focus(); return false; }
+  if(!pwd){ toast('请输入密码'); $('liPwd').focus(); return false; }
+  const user = getUsers().find(u=>u.account===acc);
+  if(!user){ toast('该账号尚未注册,已为你切换到注册'); switchAuth('reg'); $('rgAccount').value=acc; $('rgName').focus(); return false; }
+  if(user.pwd!==pwd){ toast('密码错误,请重试'); $('liPwd').value=''; $('liPwd').focus(); return false; }
+  api.login(user.name);
+  closeModal('loginModal'); syncUser(); toast(`欢迎回来,${user.name}!`);
+  return false;
+}
+function doRegister(e){
+  if(e) e.preventDefault();
+  const name = $('rgName').value.trim(), acc = $('rgAccount').value.trim(), p1 = $('rgPwd').value, p2 = $('rgPwd2').value;
+  if(name.length<2){ toast('昵称至少 2 个字符'); $('rgName').focus(); return false; }
+  if(!ACC_RE.test(acc)){ toast('请输入正确的手机号或邮箱'); $('rgAccount').focus(); return false; }
+  if(p1.length<6){ toast('密码至少 6 位'); $('rgPwd').focus(); return false; }
+  if(p1!==p2){ toast('两次输入的密码不一致'); $('rgPwd2').focus(); return false; }
+  if(!$('rgAgree').checked){ toast('请先阅读并勾选用户协议'); return false; }
+  const users = getUsers();
+  if(users.some(u=>u.account===acc)){ toast('该账号已注册,请直接登录'); switchAuth('login'); $('liAccount').value=acc; $('liPwd').focus(); return false; }
+  users.push({name, account:acc, pwd:p1, time:Date.now()});   // 演示环境本地存储;正式版由后端 bcrypt 加密入库
+  LS.set('tcf_users',users);
+  api.login(name);
+  closeModal('loginModal'); syncUser(); toast(`注册成功,欢迎加入,${name}!`);
+  return false;
+}
+function doLogout(){
+  closeModal('logoutModal');
+  api.logout(); syncUser();
+  toast('👋 已安全退出,期待你的下一次旅程!');
+  setTimeout(()=>{ location.href = 'travel-app.html'; }, 900);   // 返回首页
+}
+function syncUser(){
+  const u = api.getUser();
+  $('userName').textContent = u ? u.name : '登录 / 注册';
+  $('userAvatar').textContent = u ? u.name[0].toUpperCase() : '登';
+}
+
+/* ---------- Hero → AI 页 ---------- */
+function heroAsk(preset){
+  const v = (typeof preset==='string' ? preset : $('heroAI').value).trim();
+  if(v) sessionStorage.setItem('tcf_ai_q', v);
+  location.href = 'travel-ai.html';
+}
+
+/* ---------- 初始化 ---------- */
+syncUser();
+$('fpCityNum').textContent = new Set(api.getCheckins().map(c=>SPOT_CITY[c.spotId]).filter(Boolean)).size;
+$('momentCount').textContent = (api.getMoments()||[]).length || 3;
+document.querySelectorAll('.modal-mask').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('show'); }));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-mask.show').forEach(m=>m.classList.remove('show')); });
+const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
