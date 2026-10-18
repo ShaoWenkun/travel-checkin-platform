@@ -418,14 +418,14 @@ function closeAlbum(){ $('#aovl').classList.remove('show'); stopBgm(); }
 /* ---------- 删除纪念册(同步移除打卡/足迹/社区动态) ---------- */
 let delPend=null;
 function askDelAlbum(id){
-  const box=$('delOvl'), tip=$('delTxt');
+  const box=$('#delOvl'), tip=$('#delTxt');
   if(!box||!tip) return;
   const a=LS.get('tcf_albums',[]).find(x=>x.id===id); if(!a)return;
   delPend=id;
   tip.textContent=`「${a.dest} · ${a.date||''}」将被删除,对应的打卡记录、足迹点亮与社区动态会同步移除。`;
   box.classList.add('show');
 }
-function closeDel(){ const b=$('delOvl'); if(b)b.classList.remove('show'); delPend=null; }
+function closeDel(){ const b=$('#delOvl'); if(b)b.classList.remove('show'); delPend=null; }
 function doDelAlbum(){
   if(!delPend){ closeDel(); return; }
   const user=api.getUser();

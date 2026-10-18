@@ -816,7 +816,7 @@ function extractDests(text){
     if(text.includes(s.name)) pushSpot(s, s.name);
     else if(short.length>=2 && short!==s.name && text.includes(short)) pushSpot(s, short);
   });
-  SPOTS.forEach(s=>{ if(!seen.has(s.city) && text.includes(s.city)) push({spot:s, key:s.city}); });
+  SPOTS.forEach(s=>{ if(!seen.has(s.city) && text.includes(s.city)) pushSpot(s, s.city); });
   /* 1b) 口语别名:短称呼无法被子串匹配覆盖时直接映射(如"漓江"→桂林漓江景区) */
   const SPOT_ALIAS = {'漓江':'桂林漓江景区','鸣沙山':'敦煌鸣沙山月牙泉','月牙泉':'敦煌鸣沙山月牙泉'};
   Object.keys(SPOT_ALIAS).forEach(a=>{ if(text.includes(a)){ const s=SPOTS.find(x=>x.name===SPOT_ALIAS[a]); if(s) pushSpot(s, a); } });
