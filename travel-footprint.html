@@ -118,17 +118,18 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;height:6
 @keyframes dashmove{to{stroke-dashoffset:-24}}
 .compass{position:absolute;right:18px;top:14px;color:#5eead4;font-size:11px;letter-spacing:.25em;text-align:center;z-index:5;opacity:.85}
 .compass .n{font-size:16px;font-weight:900}
-.map-legend{position:absolute;left:16px;bottom:14px;z-index:5;display:flex;align-items:center;gap:10px;font-size:12px;color:#64748b;background:rgba(255,255,255,.8);padding:7px 16px;border-radius:99px;backdrop-filter:blur(4px);border:1px solid #dbe7ee}
+.map-legend{position:absolute;left:16px;bottom:14px;z-index:5;display:flex;align-items:center;flex-wrap:wrap;max-width:calc(100% - 90px);row-gap:2px;gap:10px;font-size:12px;color:#64748b;background:rgba(255,255,255,.8);padding:7px 16px;border-radius:99px;backdrop-filter:blur(4px);border:1px solid #dbe7ee}
 .lg{width:12px;height:12px;border-radius:4px;background:#fff;border:1.5px solid #cbd5e1;display:inline-block;margin-right:-4px}
 .lg.lit{background:linear-gradient(135deg,#fcd34d,#f59e0b);border-color:#d97706;box-shadow:0 0 8px rgba(245,158,11,.5)}
-/* 城市块(每个城市独立色块,点亮后金色高亮) */
+.lg.cat{margin-right:2px;box-shadow:0 1px 4px rgba(15,23,42,.18)}
+/* 城市块(按景点类别注入 --nc 主题色:未点亮描边着色,点亮后整块渐变高亮) */
 .ctile{position:absolute;transform:translate(-50%,-50%);z-index:3;cursor:pointer;display:flex;flex-direction:column;align-items:center}
-.cbox{padding:5px 12px;border-radius:9px;background:#fff;border:1.5px solid #cbd5e1;color:#475569;font-size:11.5px;font-weight:700;white-space:nowrap;transition:all .25s;box-shadow:0 2px 8px rgba(15,23,42,.08)}
-.ctile:hover .cbox{transform:scale(1.14);border-color:#0ea5a4;color:#0f172a}
-.ctile.lit .cbox{background:linear-gradient(135deg,#f59e0b,#f97316);border-color:#fde68a;color:#fff;box-shadow:0 0 16px rgba(245,158,11,.55)}
-.cpin{width:7px;height:7px;border-radius:50%;background:#94a3b8;margin-top:4px;transition:all .25s}
-.ctile.lit .cpin{background:var(--accent);animation:pinPulse 2.2s infinite}
-@keyframes pinPulse{0%{box-shadow:0 0 0 0 rgba(245,158,11,.55)}70%{box-shadow:0 0 0 9px rgba(245,158,11,0)}100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}}
+.cbox{padding:5px 12px;border-radius:9px;background:#fff;border:1.5px solid color-mix(in srgb,var(--nc,#94a3b8) 38%,#cbd5e1);color:#475569;font-size:11.5px;font-weight:700;white-space:nowrap;transition:all .25s;box-shadow:0 2px 8px rgba(15,23,42,.08)}
+.ctile:hover .cbox{transform:scale(1.14);border-color:var(--nc,#0ea5a4);color:var(--nc,#0f172a);box-shadow:0 3px 12px color-mix(in srgb,var(--nc,#0ea5a4) 30%,rgba(15,23,42,.12))}
+.ctile.lit .cbox{background:linear-gradient(135deg,var(--nc,#f59e0b),color-mix(in srgb,var(--nc,#f59e0b) 68%,#000));border-color:#fff8;color:#fff;box-shadow:0 0 16px color-mix(in srgb,var(--nc,#f59e0b) 55%,transparent)}
+.cpin{width:7px;height:7px;border-radius:50%;background:color-mix(in srgb,var(--nc,#94a3b8) 42%,#94a3b8);margin-top:4px;transition:all .25s}
+.ctile.lit .cpin{background:var(--nc,#f59e0b);animation:pinPulse 2.2s infinite}
+@keyframes pinPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--nc,#f59e0b) 55%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
 /* 信息浮卡 */
 .city-card{position:absolute;right:18px;top:52px;width:310px;background:var(--card);border-radius:18px;overflow:hidden;box-shadow:0 24px 54px rgba(0,0,0,.55);z-index:6;transform:translateY(16px) scale(.97);opacity:0;pointer-events:none;transition:all .32s cubic-bezier(.22,1,.36,1)}
 .city-card.show{transform:none;opacity:1;pointer-events:auto}
@@ -324,7 +325,7 @@ footer b em{font-style:normal;color:var(--primary)}
       </svg>
       <div class="compass"><div class="n">N</div>↑</div>
       <div class="nh-label">南海诸岛</div>
-      <div class="map-legend"><span class="lg lit"></span>已点亮省份/城市<span class="lg"></span>未点亮<span style="margin-left:4px;color:#0ea5a4;font-weight:700">- - -</span>旅行轨迹<span style="font-size:10px;color:#94a3b8;margin-left:4px">边界仅示意,不作划界依据</span></div>
+      <div class="map-legend"><span class="lg lit"></span>已点亮<span class="lg"></span>未点亮<span style="color:#0ea5a4;font-weight:700">- - -</span>旅行轨迹<span class="lg cat" style="background:#10b981;border-color:#0d9668"></span>山川<span class="lg cat" style="background:#0ea5e9;border-color:#0284c7"></span>海岛<span class="lg cat" style="background:#f97316;border-color:#ea580c"></span>古镇<span class="lg cat" style="background:#e11d48;border-color:#be123c"></span>历史<span class="lg cat" style="background:#8b5cf6;border-color:#7c3aed"></span>城市<span class="lg cat" style="background:#84cc16;border-color:#65a30d"></span>草原<span style="font-size:10px;color:#94a3b8">边界仅示意,不作划界依据</span></div>
 
       <div class="city-card" id="cityCard">
         <button class="cc-close" onclick="document.getElementById('cityCard').classList.remove('show')">✕</button>
@@ -430,18 +431,18 @@ const api = {
 };
 const IMG = p => `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(p)}&image_size=landscape_4_3`;
 const SPOTS = [
- {id:1, name:'丽江古城', city:'丽江', province:'云南', score:4.9, tags:['古镇','夜景','世遗'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F1%2F12%2FLijiang-canales-l02.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'茶马古道上的千年古城,小桥流水与纳西民居相映。'},
- {id:2, name:'亚龙湾', city:'三亚', province:'海南', score:4.8, tags:['海岛','沙滩','潜水'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FYalong_Bay_01.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'天下第一湾,椰林树影与碧海银滩的热带天堂。'},
- {id:3, name:'张家界国家森林公园', city:'张家界', province:'湖南', score:4.8, tags:['奇峰','云海','栈道'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fac%2FYangjiajie.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'三千奇峰拔地而起,《阿凡达》悬浮山原型地。'},
- {id:4, name:'八达岭长城', city:'北京', province:'北京', score:4.7, tags:['历史','徒步','日出'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fc%2Fc4%2FGreatWall_Badaling.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'不到长城非好汉,崇山峻岭间的巨龙脊梁。'},
- {id:5, name:'西湖', city:'杭州', province:'浙江', score:4.8, tags:['湖泊','园林','骑行'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fa9%2FWest_Lake_-_Hangzhou%2C_China.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'淡妆浓抹总相宜,江南园林与湖光山色的典范。'},
- {id:6, name:'鼓浪屿', city:'厦门', province:'福建', score:4.6, tags:['海岛','文艺','建筑'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F0%2F0f%2F%E9%BC%93%E6%B5%AA%E5%B1%BF_-_panoramio.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'万国建筑博览与琴声悠扬的文艺小岛。'},
- {id:7, name:'九寨沟', city:'阿坝', province:'四川', score:4.9, tags:['彩池','瀑布','秋色'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fef%2F1_nuorilang_jiuzhaigou_2023.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'九寨归来不看水,五彩斑斓的高原海子群。'},
- {id:8, name:'秦始皇兵马俑', city:'西安', province:'陕西', score:4.8, tags:['历史','博物馆','考古'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F8%2F88%2F51714-Terracota-Army.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'世界第八大奇迹,两千年前的大秦军团。'},
- {id:9, name:'呼伦贝尔大草原', city:'呼伦贝尔', province:'内蒙古', score:4.7, tags:['草原','骑马','星空'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F33%2FHulunbuir_Grasslands%2C_Inner_Mongolia.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'天苍苍野茫茫,策马奔腾的北国牧歌。'},
- {id:10,name:'凤凰古城', city:'湘西', province:'湖南', score:4.6, tags:['古镇','吊脚楼','沱江'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F34%2F%E5%87%A4%E5%87%B0_-_panoramio_(1).jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'沱江边的吊脚楼群,沈从文笔下的边城。'},
- {id:11,name:'黄山', city:'黄山', province:'安徽', score:4.9, tags:['奇松','云海','日出'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FHuangshan_fengjing.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'五岳归来不看山,黄山归来不看岳。'},
- {id:12,name:'外滩', city:'上海', province:'上海', score:4.7, tags:['夜景','都市','建筑'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fe0%2FPromenade_du_Bund.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'万国建筑群与陆家嘴天际线隔江相望。'}
+ {id:1, name:'丽江古城', cat:'古镇', city:'丽江', province:'云南', score:4.9, tags:['古镇','夜景','世遗'], img:'img/Lijiang-canales-l02.jpg', intro:'茶马古道上的千年古城,小桥流水与纳西民居相映。'},
+ {id:2, name:'亚龙湾', cat:'海岛', city:'三亚', province:'海南', score:4.8, tags:['海岛','沙滩','潜水'], img:'img/Yalong_Bay_01.jpg', intro:'天下第一湾,椰林树影与碧海银滩的热带天堂。'},
+ {id:3, name:'张家界国家森林公园', cat:'山川', city:'张家界', province:'湖南', score:4.8, tags:['奇峰','云海','栈道'], img:'img/Yangjiajie.jpg', intro:'三千奇峰拔地而起,《阿凡达》悬浮山原型地。'},
+ {id:4, name:'八达岭长城', cat:'历史', city:'北京', province:'北京', score:4.7, tags:['历史','徒步','日出'], img:'img/GreatWall_Badaling.jpg', intro:'不到长城非好汉,崇山峻岭间的巨龙脊梁。'},
+ {id:5, name:'西湖', cat:'城市', city:'杭州', province:'浙江', score:4.8, tags:['湖泊','园林','骑行'], img:'img/West_Lake_-_Hangzhou__China.jpg', intro:'淡妆浓抹总相宜,江南园林与湖光山色的典范。'},
+ {id:6, name:'鼓浪屿', cat:'海岛', city:'厦门', province:'福建', score:4.6, tags:['海岛','文艺','建筑'], img:'img/____-_panoramio.jpg', intro:'万国建筑博览与琴声悠扬的文艺小岛。'},
+ {id:7, name:'九寨沟', cat:'山川', city:'阿坝', province:'四川', score:4.9, tags:['彩池','瀑布','秋色'], img:'img/1_nuorilang_jiuzhaigou_2023.jpg', intro:'九寨归来不看水,五彩斑斓的高原海子群。'},
+ {id:8, name:'秦始皇兵马俑', cat:'历史', city:'西安', province:'陕西', score:4.8, tags:['历史','博物馆','考古'], img:'img/51714-Terracota-Army.jpg', intro:'世界第八大奇迹,两千年前的大秦军团。'},
+ {id:9, name:'呼伦贝尔大草原', cat:'草原', city:'呼伦贝尔', province:'内蒙古', score:4.7, tags:['草原','骑马','星空'], img:'img/Hulunbuir_Grasslands__Inner_Mongolia.jpg', intro:'天苍苍野茫茫,策马奔腾的北国牧歌。'},
+ {id:10,name:'凤凰古城', cat:'古镇', city:'湘西', province:'湖南', score:4.6, tags:['古镇','吊脚楼','沱江'], img:'img/___-_panoramio__1_.jpg', intro:'沱江边的吊脚楼群,沈从文笔下的边城。'},
+ {id:11,name:'黄山', cat:'山川', city:'黄山', province:'安徽', score:4.9, tags:['奇松','云海','日出'], img:'img/Huangshan_fengjing.jpg', intro:'五岳归来不看山,黄山归来不看岳。'},
+ {id:12,name:'外滩', cat:'城市', city:'上海', province:'上海', score:4.7, tags:['夜景','都市','建筑'], img:'img/Promenade_du_Bund.jpg', intro:'万国建筑群与陆家嘴天际线隔江相望。'}
 ];
 const BADGES = [
  {need:1,  ico:'🌱', name:'启程者'},
@@ -571,6 +572,13 @@ function renderStats(){
 
 /* ---------- 城市块 ---------- */
 function spotGeo(s){ return CITY_GEO[s.city] || PROV_GEO[s.province] || null; }
+/* 类别主题色:山川绿/海岛蓝/古镇橙/历史红/城市紫/草原黄绿,点亮节点按类别着色 */
+const CAT_COLOR = {山川:'#10b981', 海岛:'#0ea5e9', 古镇:'#f97316', 历史:'#e11d48', 城市:'#8b5cf6', 草原:'#84cc16'};
+function spotCat(s){
+  if(s.cat && CAT_COLOR[s.cat]) return s.cat;
+  const hit = Object.keys(CAT_COLOR).find(c=>(s.tags||[]).some(t=>t.includes(c)) || (s.name||'').includes(c));
+  return hit || '城市';
+}
 function renderNodes(){
   document.querySelectorAll('#bigMap .ctile').forEach(n=>n.remove());
   const cks = api.getCheckins();
@@ -587,7 +595,8 @@ function renderNodes(){
     const i = (seen[s.city] = (seen[s.city] ?? -1) + 1);   // 同城多景点 → 微偏移避免重叠
     const jx = i ? ((s.id % 3) - 1) * 2.6 : 0, jy = i ? ((s.id % 5) - 2) * 1.9 : 0;
     const on = lit.has(s.id);
-    return `<div class="ctile ${on?'lit':''}" style="left:${(g.x+jx).toFixed(2)}%;top:${(g.y+jy).toFixed(2)}%" onclick="showCity(${s.id})">
+    const nc = CAT_COLOR[spotCat(s)] || CAT_COLOR.城市;
+    return `<div class="ctile ${on?'lit':''}" style="--nc:${nc};left:${(g.x+jx).toFixed(2)}%;top:${(g.y+jy).toFixed(2)}%" onclick="showCity(${s.id})">
       <span class="cbox">${s.city}</span><span class="cpin"></span>
     </div>`;
   }).join(''));
@@ -609,7 +618,9 @@ function showCity(id){
   const s = getSpot(id);
   const ck = api.getCheckins().find(c=>c.spotId===id);
   const sc = api.getScores()[id];
-  $('ccImg').src = s.img;
+  $('ccImg').alt = s.name || 'China scenic spot';
+  $('ccImg').src = s.img || IMG(s.name + ' China famous scenic spot travel photography');
+  $('ccImg').dataset.fallen = '';   // 重置兜底标记,允许本次加载失败时再次触发 AI 图兜底
   $('ccName').textContent = s.name;
   $('ccScore').textContent = '★ ' + s.score;
   $('ccLoc').textContent = `📍 ${s.province} · ${s.city}`;
@@ -633,7 +644,7 @@ function renderTimeline(){
   $('timeline').innerHTML = cks.map(c=>{
     const s = getSpot(c.spotId); if(!s) return '';
     return `<div class="tl-item"><div class="tl-card">
-      <img src="${s.img}" alt="">
+      <img src="${s.img}" alt="${s.name}">
       <div class="tl-info"><b>${s.name}</b><span>📍 ${s.province}·${s.city} · 🕐 ${fmtDate(c.time)}</span>${c.note?`<p>💬 ${c.note}</p>`:''}</div>
       <span class="tl-star">${scores[s.id]?'★'.repeat(scores[s.id]):''}</span>
       <button class="tl-del" onclick="delCk(${s.id})">删除</button>
