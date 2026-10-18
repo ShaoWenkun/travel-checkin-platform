@@ -132,6 +132,8 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;height:6
 .dcard img{width:150px;height:105px;object-fit:cover;display:block;background:var(--soft)}
 .dcard b{display:block;font-size:12.5px;padding:6px 10px 0}
 .dcard i{display:block;font-style:normal;font-size:10.5px;color:var(--muted);padding:2px 10px 8px}
+.dcard.noimg{padding:22px 10px;text-align:center}
+.dcard.noimg b{padding:0 0 4px}
 
 .check-btn{background:var(--grad);color:var(--on-accent);font-size:13px;font-weight:700;padding:7px 18px;border-radius:999px;transition:all .2s}
 .check-btn:hover{box-shadow:var(--shadow)}
@@ -808,7 +810,7 @@ function spotMatch(kw){
 }
 function extractDests(text){
   const out = [], seen = new Set();
-  const push = o=>{ if(o && o.key && !seen.has(o.key) && out.length<6){ seen.add(o.key); out.push(o); } };
+  const push = o=>{ if(o && o.key && !seen.has(o.key) && out.length<3){ seen.add(o.key); out.push(o); } };   // 图片卡最多 3 张
   const pushSpot = (s,key)=>{ if(out.some(o=>o.spot && o.spot.id===s.id)) return; push({spot:s, key}); };   // 同景点只出一张卡
   /* 1) 平台景点库优先匹配:全名 + 去后缀短名(如"故宫"命中"故宫博物院") */
   SPOTS.forEach(s=>{
@@ -830,7 +832,7 @@ function extractDests(text){
   /* 3) 动态识别:XX市/省/州/古城/古镇/风景区 + “去/在XX” + “XX之旅/自由行” */
   const RE = /([\u4e00-\u9fa5]{2,5}(?:市|省|自治区|州|地区|古城|古镇|群岛|风景区))|去([\u4e00-\u9fa5]{2,5})|在([\u4e00-\u9fa5]{2,5})|([\u4e00-\u9fa5]{2,5})(?:之旅|自由行)/g;
   let m;
-  while((m = RE.exec(text)) && out.length < 6){
+  while((m = RE.exec(text)) && out.length < 3){
     const raw = (m[1]||m[2]||m[3]||m[4]||'').replace(/(市|省|古城|古镇|风景区)$/,'');
     if(raw.length>=2 && raw.length<=5 && !STOP_WORDS.some(w=>raw.includes(w)) && !/[和与跟及或、，,。的]/.test(raw)){
       const hit = spotMatch(raw);           // 提取到的关键词若能对应平台景点 → 直接出实拍卡
@@ -841,27 +843,38 @@ function extractDests(text){
 }
 function destStripHTML(list){
   if(!list.length) return '';
-  const gen = n=>`https://image.pollinations.ai/prompt/${encodeURIComponent(n+' famous landmark scenic view, beautiful landscape, travel photography, high quality')}?width=480&height=360&nologo=true`;
-  const fallback = n=>`this.onerror=null;this.src='https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt='+encodeURIComponent('${n} landmark scenic view, travel photography')+'&image_size=landscape_4_3'`;
-  const hasSpot = list.some(d=>d.spot);
+  /* 图片来源优先级: 平台/爬虫景点本地实拍 > 百度图片爬取的真实照片(baidu-imgs.json) > 纯文字卡; 一律不用 AI 生成图 */
   const cards = list.map(d=>{
     if(d.spot){
       return `<a class="dcard" href="travel-spots.html?spot=${d.spot.id}" target="_blank" title="点击查看「${d.spot.name}」介绍与评论"><img src="${d.spot.img}" alt="${d.spot.name}" loading="lazy"><b>${d.spot.name}</b><i>📷 真实照片 · ${d.spot.province} ${d.spot.city} · 看详情 →</i></a>`;
     }
-    return `<div class="dcard"><img src="${gen(d.name)}" alt="${d.name}" loading="lazy" onerror="${fallback(d.name)}"><b>${d.name}</b><i>AI 示意图 · 暂无实拍</i></div>`;
+    const real = BAIDU_IMGS[d.name];
+    if(real){
+      return `<div class="dcard"><img src="${real}" alt="${d.name}" loading="lazy"><b>${d.name}</b><i>📷 真实照片 · 来源百度图片</i></div>`;
+    }
+    return `<div class="dcard noimg"><b>${d.name}</b><i>📍 热门目的地</i></div>`;
   }).join('');
-  return `<div class="dest-strip"><div class="dst-hd">${hasSpot?'🖼️ 聊到的景点,实拍照片都在这里(点击可看介绍与评论)':'🖼️ 相关目的地示意图'}</div><div class="dst-row">${cards}</div></div>`;
+  return `<div class="dest-strip"><div class="dst-hd">🖼️ 聊到的目的地,真实照片都在这里</div><div class="dst-row">${cards}</div></div>`;
 }
 async function showDestImages(q, reply){
   if(!SPOTS_READY) loadCrawledSpots();       // 兜底:确保爬虫景点已就绪
-  await SPOTS_READY;                         // 结束对话取图前,先等 spots.json 爬虫数据加载完,保证优先用爬虫实拍
+  if(!BAIDU_READY) loadBaiduImgs();          // 兜底:确保百度图片映射已就绪
+  await Promise.all([SPOTS_READY, BAIDU_READY]); // 结束对话取图前,先等爬虫数据加载完,保证全部用真实照片
   const list = extractDests(`${q||''} ${reply||''}`);
   if(list.length) appendMsg('ai', destStripHTML(list));
+}
+
+/* ---------- 百度图片真实照片映射(PowerShell 爬虫离线抓取,本地化存储) ---------- */
+let BAIDU_READY=null; const BAIDU_IMGS={};
+function loadBaiduImgs(){
+  BAIDU_READY = fetch('baidu-imgs.json').then(r=>r.json()).then(arr=>{ arr.forEach(o=>{ BAIDU_IMGS[o.name]=o.img; }); }).catch(()=>{});
+  return BAIDU_READY;
 }
 
 /* ---------- 初始化 ---------- */
 syncUser(); greet();
 loadCrawledSpots();   // 预加载爬虫景点,聊天中即可匹配故宫/漓江等实拍卡(与用户发送异步,不阻塞)
+loadBaiduImgs();      // 预加载百度图片真实照片映射(baidu-imgs.json),非平台目的地也出真实图
 /* 全站图片兜底:真实照片加载失败时自动切换为 AI 示意图 */
 document.addEventListener('error', e=>{
   const t = e.target;
