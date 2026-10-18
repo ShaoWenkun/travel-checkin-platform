@@ -644,7 +644,7 @@ function renderTimeline(){
   $('timeline').innerHTML = cks.map(c=>{
     const s = getSpot(c.spotId); if(!s) return '';
     return `<div class="tl-item"><div class="tl-card">
-      <img src="${s.img}" alt="${s.name}">
+      <img src="${s.img}" alt="${s.name}" loading="lazy" decoding="async">
       <div class="tl-info"><b>${s.name}</b><span>📍 ${s.province}·${s.city} · 🕐 ${fmtDate(c.time)}</span>${c.note?`<p>💬 ${c.note}</p>`:''}</div>
       <span class="tl-star">${scores[s.id]?'★'.repeat(scores[s.id]):''}</span>
       <button class="tl-del" onclick="delCk(${s.id})">删除</button>

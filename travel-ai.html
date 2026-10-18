@@ -761,7 +761,7 @@ function buildPlanBlocks(it, picks){
       ? `<div class="plan-transfer">🚄 Day ${di} 结束后由「${days[di-1][0].city}」前往「${list[0].city}」,建议高铁/飞机,并预留半天交通时间</div>` : '';
     const rows = list.map((s, si)=>{
       const slot = si===0 ? 'am' : 'pm', sn = si===0 ? '上午' : '下午';
-      return `<div class="plan-spot"><span class="ps-time">${sn}</span><img src="${s.img}" alt=""><div class="ps-info"><b>${s.name}</b><span>★${s.score} · ${s.province}·${s.city}</span><p>${slotDesc(s.cat, slot, s.name)}</p></div><button class="check-btn" onclick="onCheckin(${s.id})">打卡</button></div>`;
+      return `<div class="plan-spot"><span class="ps-time">${sn}</span><img src="${s.img}" alt="${s.name}" loading="lazy" decoding="async"><div class="ps-info"><b>${s.name}</b><span>★${s.score} · ${s.province}·${s.city}</span><p>${slotDesc(s.cat, slot, s.name)}</p></div><button class="check-btn" onclick="onCheckin(${s.id})">打卡</button></div>`;
     }).join('');
     const dayCities = [...new Set(list.map(s=>s.city))].join(' / ');
     blocks.push(`${transfer}<div class="plan-day"><div class="pd-head">📅 Day ${di+1} · ${dayCities}</div>${rows}<div class="plan-night">🌙 晚上:${nightDesc(list[list.length-1])}</div></div>`);
