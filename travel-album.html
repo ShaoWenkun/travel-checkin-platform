@@ -147,6 +147,9 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;height:6
 .album-card .am{display:flex;justify-content:space-between;font-size:11px;margin-top:7px;color:var(--ink-2)}
 .album-card .am b{color:var(--gold)}
 .album-card .tape{position:absolute;top:6px;left:50%;transform:translateX(-50%) rotate(-3deg);width:64px;height:15px;background:rgba(231,199,109,.4);border-radius:2px;z-index:2}
+.album-card .adel{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:rgba(13,19,34,.65);color:#fff;font-size:11px;display:grid;place-items:center;z-index:3;opacity:0;transition:.2s}
+.album-card:hover .adel{opacity:1}
+.album-card .adel:hover{background:var(--err);transform:scale(1.12)}
 .empty-tip{grid-column:1/-1;text-align:center;font-size:13px;color:var(--muted);border:1.5px dashed var(--line);border-radius:14px;padding:26px}
 
 /* ---------- 纪念册弹窗(照抄模板) ---------- */
@@ -184,9 +187,9 @@ footer b{color:var(--ink)}
     <a class="logo" href="travel-app.html"><span class="tile"><svg viewBox="0 0 24 24"><path d="M21.5 5.6c-.5-1-1.8-1.4-2.8-.9l-4.3 2.3-8.1-3.4c-.5-.2-1.1-.1-1.5.2l-.9.8c-.5.4-.4 1.2.2 1.5l6.5 3.3-3.7 2-2.9-.6c-.4-.1-.8 0-1.1.3l-.7.6c-.4.4-.3 1 .2 1.2l3.3 1.9 1.9 3.3c.3.5 1 .6 1.3.2l.6-.7c.3-.3.4-.7.3-1.1l-.6-2.9 3.7-2 3.3 6.5c.3.5 1.1.6 1.5.2l.8-.9c.3-.4.4-1 .2-1.5l-3.4-8.1 2.3-4.3c.5-.9.3-2.1-.6-2.6z" transform="scale(.9) translate(1.3,1.3)"/></svg></span><span class="lt"><b>Fly Me to the World</b><i>旅迹 · 旅游打卡平台</i></span></a>
     <div class="nav-links">
       <a href="travel-app.html">首页</a>
-      <a href="travel-ai.html">AI 规划师</a>
       <a href="travel-spots.html">逛景点</a>
       <a href="travel-footprint.html">我的足迹</a>
+      <a href="travel-ai.html">AI 规划师</a>
       <a href="travel-moments.html">社区动态</a>
       <a href="travel-album.html" class="on">打卡·纪念册</a>
       <a href="travel-member.html">我的</a>
@@ -248,6 +251,14 @@ footer b{color:var(--ink)}
 
 <!-- 纪念册弹窗 -->
 <div class="aovl" id="aovl" onclick="if(event.target===this)closeAlbum()"><div id="albumBox"></div></div>
+<!-- 删除确认弹窗(项目统一 styled 弹窗) -->
+<div class="aovl" id="delOvl" onclick="if(event.target===this)closeDel()">
+  <div class="album-modal" style="width:min(380px,100%)"><div class="album-inner" style="text-align:center">
+    <h3 style="font-size:17px;font-weight:900">删除这页纪念册?</h3>
+    <p style="font-size:13px;color:var(--muted);margin:10px 0 4px" id="delTxt"></p>
+    <div class="dbtns"><button class="btn line" onclick="closeDel()">再想想</button><button class="btn gold" style="background:linear-gradient(135deg,#f87171,#dc2626);color:#fff" onclick="doDelAlbum()">确认删除</button></div>
+  </div></div>
+</div>
 <div id="toast"></div>
 
 <script>
@@ -380,6 +391,7 @@ function renderAlbums(){
   const albums=LS.get('tcf_albums',[]);
   $('#albumsGrid').innerHTML=albums.length?albums.map(a=>`<div class="album-card" onclick="openAlbumById('${a.id}')">
     <span class="tape"></span>
+    <span class="adel" title="删除这页纪念册" onclick="event.stopPropagation();askDelAlbum('${a.id}')">✕</span>
     <img src="${a.cover||IMG(a.dest)}" alt="${a.dest}">
     <div class="ab"><h5>${a.dest}</h5><p>${a.date} · ${a.city}</p><div class="am"><span>💰 <b>${fmt(a.total)}</b></span><span>${a.mood}</span></div></div></div>`).join('')
   :'<div class="empty-tip">还没有纪念册 · 提交一次打卡就会自动生成第一页 ✨</div>';
@@ -396,11 +408,32 @@ function openAlbum(a){
       <div class="album-photos">${photos.map(u=>`<img src="${u}" alt="">`).join('')}</div>
       <div class="album-stats"><span>💰 实际花费 <b>${fmt(a.total)}</b></span>${a.costs.map(c=>`<span>${c.k} <b>${fmt(c.v)}</b></span>`).join('')}${a.hasVideo?'<span>🎬 含打卡视频</span>':''}${a.bgm&&a.bgm!=='none'?`<span class="bgm-btn" style="cursor:pointer" onclick="toggleBgm('${a.bgm}')">♪ 播放纪念册 BGM</span>`:''}</div>
       <div class="album-sync">✔ 已同步到足迹地图与社区动态，成为其他旅行者的真实攻略</div>
-      <div class="dbtns"><button class="btn line" onclick="closeAlbum()">收起纪念册</button><button class="btn gold" onclick="location.href='travel-moments.html'">去社区看看</button></div>
+      <div class="dbtns"><button class="btn line" onclick="closeAlbum()">收起纪念册</button><button class="btn gold" onclick="location.href='travel-moments.html'">去社区看看</button><button class="btn line" style="color:var(--err);border-color:var(--err)" onclick="closeAlbum();askDelAlbum('${a.id}')">删除</button></div>
     </div></div>`;
   $('#aovl').classList.add('show');
 }
 function closeAlbum(){ $('#aovl').classList.remove('show'); stopBgm(); }
+
+/* ---------- 删除纪念册(同步移除打卡/足迹/社区动态) ---------- */
+let delPend=null;
+function askDelAlbum(id){
+  const a=LS.get('tcf_albums',[]).find(x=>x.id===id); if(!a)return;
+  delPend=id;
+  $('delTxt').textContent=`「${a.dest} · ${a.date}」将被删除,对应的打卡记录、足迹点亮与社区动态会同步移除。`;
+  $('delOvl').classList.add('show');
+}
+function closeDel(){ $('delOvl').classList.remove('show'); delPend=null; }
+function doDelAlbum(){
+  const a=LS.get('tcf_albums',[]).find(x=>x.id===delPend);
+  LS.set('tcf_albums', LS.get('tcf_albums',[]).filter(x=>x.id!==delPend));
+  if(a){
+    LS.set('tcf_checkins', api.getCheckins().filter(c=>!(c.spotId===a.spotId && c.note===a.text)));
+    const ml=api.getMoments()||[];
+    api.saveMoments(ml.filter(m=>!(m.id>100 && m.spotId===a.spotId && typeof m.text==='string' && m.text.indexOf(a.text.slice(0,20))===0)));
+  }
+  closeDel(); renderAlbums();
+  toast('纪念册已删除,足迹与社区已同步 🗑');
+}
 
 /* ---------- 用户/主题 ---------- */
 function refreshUserChip(){
