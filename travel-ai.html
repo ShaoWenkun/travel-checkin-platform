@@ -832,7 +832,7 @@ function extractDests(text){
   let m;
   while((m = RE.exec(text)) && out.length < 6){
     const raw = (m[1]||m[2]||m[3]||m[4]||'').replace(/(市|省|古城|古镇|风景区)$/,'');
-    if(raw.length>=2 && raw.length<=5 && !STOP_WORDS.some(w=>raw.includes(w))){
+    if(raw.length>=2 && raw.length<=5 && !STOP_WORDS.some(w=>raw.includes(w)) && !/[和与跟及或、，,。的]/.test(raw)){
       const hit = spotMatch(raw);           // 提取到的关键词若能对应平台景点 → 直接出实拍卡
       if(hit) pushSpot(hit, raw); else push({name:raw, key:raw});
     }
