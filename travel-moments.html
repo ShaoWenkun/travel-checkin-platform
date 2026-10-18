@@ -107,6 +107,29 @@ nav .navwrap{width:min(1160px,92%);margin:0 auto;display:flex;align-items:center
 .moment .mfoot{margin-top:10px;display:flex;gap:18px;font-size:13px;color:var(--muted)}
 .moment .mfoot button{color:var(--muted);font-size:13px;transition:color .2s}
 .moment .mfoot button:hover,.moment .mfoot button.on{color:#e11d48}
+/* ---------- 动态关联景点卡片 ---------- */
+.mspot-card{display:flex;gap:12px;align-items:center;background:var(--soft);border:1px solid var(--tint-line);border-radius:14px;padding:10px;margin-top:10px;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none}
+.mspot-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.mspot-card img{width:88px;height:62px;object-fit:cover;border-radius:10px;flex:none}
+.mspot-card .sc-info{min-width:0}
+.mspot-card .sc-info b{font-size:14px;display:block;line-height:1.4}
+.mspot-card .sc-info div{font-size:11.5px;color:var(--muted)}
+.mspot-card .sc-go{margin-left:auto;color:var(--primary);font-size:12px;font-weight:700;white-space:nowrap;flex:none}
+/* ---------- 动态评论区 ---------- */
+.mcmts{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px;display:grid;gap:8px}
+.mcmt{display:flex;gap:8px;align-items:flex-start}
+.mcmt .cav{flex:none;width:24px;height:24px;border-radius:50%;background:var(--grad);color:var(--on-accent);display:grid;place-items:center;font-size:11px;font-weight:800}
+.mcmt .cbc{background:var(--soft);border-radius:9px;padding:6px 10px;font-size:12.5px;color:var(--ink-2);flex:1;line-height:1.6}
+.mcmt .cbc b{font-size:11.5px;color:var(--ink);margin-right:4px}
+.mcmt .cbc i{display:block;font-style:normal;font-size:10.5px;color:var(--muted);margin-top:2px}
+.mcmtform{display:flex;gap:8px;margin-top:2px}
+.mcmtform input{flex:1;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:12.5px;color:var(--ink);outline:none}
+.mcmtform input:focus{border-color:var(--primary)}
+.mcmtform button{background:var(--grad);color:var(--on-accent);font-weight:700;font-size:12.5px;padding:0 16px;border-radius:999px}
+/* ---------- 发布框关联景点选择 ---------- */
+.post-side{display:flex;flex-direction:column;gap:8px;justify-content:center;flex:none}
+.moment-post select{background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:12.5px;outline:none;max-width:200px;cursor:pointer}
+.moment-post select:focus{border-color:var(--primary)}
 
 .modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-mask.show{display:flex}
@@ -199,7 +222,10 @@ footer b em{font-style:normal;color:var(--primary)}
     <div class="moment-post reveal">
       <div class="mav" id="postAvatar">游</div>
       <textarea id="momentInput" placeholder="分享你的旅途见闻吧…"></textarea>
-      <button onclick="postMoment()">发布</button>
+      <div class="post-side">
+        <select id="postSpot"><option value="">📍 关联景点(可选)</option></select>
+        <button onclick="postMoment()">发布</button>
+      </div>
     </div>
     <div class="moment-list reveal" id="momentList"></div>
   </div>
@@ -275,11 +301,42 @@ const api = {
   getMoments: ()=>LS.get('tcf_moments',null),
   saveMoments:(l)=>LS.set('tcf_moments',l)
 };
-const SPOT_NAME = {3:'张家界国家森林公园',2:'亚龙湾',9:'呼伦贝尔大草原'};
+/* 景点数据(与逛景点页一致,图片为真实风景实拍) */
+const SPOTS = [
+ {id:1, name:'丽江古城', city:'丽江', province:'云南', cat:'古镇', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F1%2F12%2FLijiang-canales-l02.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:2, name:'亚龙湾', city:'三亚', province:'海南', cat:'海岛', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FYalong_Bay_01.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:3, name:'张家界国家森林公园', city:'张家界', province:'湖南', cat:'山川', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fac%2FYangjiajie.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:4, name:'八达岭长城', city:'北京', province:'北京', cat:'历史', score:4.7, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fc%2Fc4%2FGreatWall_Badaling.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:5, name:'西湖', city:'杭州', province:'浙江', cat:'城市', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fa9%2FWest_Lake_-_Hangzhou%2C_China.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:6, name:'鼓浪屿', city:'厦门', province:'福建', cat:'海岛', score:4.6, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F0%2F0f%2F%E9%BC%93%E6%B5%AA%E5%B1%BF_-_panoramio.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:7, name:'九寨沟', city:'阿坝', province:'四川', cat:'山川', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fef%2F1_nuorilang_jiuzhaigou_2023.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:8, name:'秦始皇兵马俑', city:'西安', province:'陕西', cat:'历史', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F8%2F88%2F51714-Terracota-Army.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:9, name:'呼伦贝尔大草原', city:'呼伦贝尔', province:'内蒙古', cat:'草原', score:4.7, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F33%2FHulunbuir_Grasslands%2C_Inner_Mongolia.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:10,name:'凤凰古城', city:'湘西', province:'湖南', cat:'古镇', score:4.6, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F34%2F%E5%87%A4%E5%87%B0_-_panoramio_(1).jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:11,name:'黄山', city:'黄山', province:'安徽', cat:'山川', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FHuangshan_fengjing.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
+ {id:12,name:'外滩', city:'上海', province:'上海', cat:'城市', score:4.7, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fe0%2FPromenade_du_Bund.jpg&w=800&h=560&fit=cover&output=jpg&q=80'}
+];
+/* 合并爬虫景点(spots.json,id 从 1000 起,按名称去重,与其他页面保持一致) */
+function loadCrawledSpots(){
+  return fetch('spots.json').then(r=>r.json()).then(arr=>{
+    let nextId = 1000;
+    arr.forEach(o=>{
+      if(SPOTS.some(s=>s.name===o.name)) return;
+      SPOTS.push({id:nextId++, name:o.name, city:o.city, province:o.province, cat:o.cat, score:o.score, img:o.img||''});
+    });
+  }).catch(()=>{});
+}
+function getSpot(id){ return SPOTS.find(s=>s.id===id); }
+
 const DEFAULT_MOMENTS = [
- {id:1, user:'山城小鹿', spotId:3, text:'雨后的张家界云海真的绝了!御笔峰在云里若隐若现,像水墨画一样,建议住山顶看日出。', likes:128, liked:false, time:'2 小时前'},
- {id:2, user:'海岛控阿哲', spotId:2, text:'亚龙湾水质确实好,浮潜看到了小丑鱼群。下午四点后人少,拍照光线也柔。', likes:96, liked:false, time:'5 小时前'},
- {id:3, user:'背包客老周', spotId:9, text:'在呼伦贝尔骑马跑了三个小时,晚上蒙古包外肉眼可见银河,此生必去!', likes:210, liked:false, time:'昨天'}
+ {id:1, user:'山城小鹿', spotId:3, text:'雨后的张家界云海真的绝了!御笔峰在云里若隐若现,像水墨画一样,建议住山顶看日出。', likes:128, liked:false, time:'2 小时前', cmts:[{user:'旅行家小柯', text:'上个月刚去,百龙天梯排队人也值!', time:'1 小时前'}]},
+ {id:2, user:'海岛控阿哲', spotId:2, text:'亚龙湾水质确实好,浮潜看到了小丑鱼群。下午四点后人少,拍照光线也柔。', likes:96, liked:false, time:'5 小时前', cmts:[]},
+ {id:3, user:'背包客老周', spotId:9, text:'在呼伦贝尔骑马跑了三个小时,晚上蒙古包外肉眼可见银河,此生必去!', likes:210, liked:false, time:'昨天', cmts:[{user:'星空摄影喵', text:'求个机位!准备下个月去拍银河', time:'20 小时前'},{user:'老周', text:'黑山头镇往西的坡地,记得带三脚架', time:'18 小时前'}]},
+ {id:4, user:'旅拍师小满', spotId:1000, text:'故宫的秋才是北平的魂。清晨八点从午门进,人少光线斜,太和殿广场的鎏金铜缸美到失语。', likes:186, liked:false, time:'2 天前', cmts:[{user:'红墙拾光', text:'这组构图绝了,角楼机位求带!', time:'1 天前'}]},
+ {id:5, user:'江南烟雨客', spotId:5, text:'西湖的雨不要躲,撑伞走苏堤,断桥残雪的碑前几乎没人。晚上去湖滨看音乐喷泉,完美收尾。', likes:142, liked:false, time:'3 天前', cmts:[]},
+ {id:6, user:'川西行者阿岚', spotId:7, text:'九寨沟的水是真的不讲道理!五花海像上帝打翻的调色盘,诺日朗瀑布彩虹常驻,一天走了两万步也值。', likes:230, liked:false, time:'4 天前', cmts:[{user:'摄影小白', text:'请问现在景区限流吗?打算国庆后去', time:'3 天前'},{user:'川西行者阿岚', text:'提前在公众号订票就行,错峰体验感拉满', time:'3 天前'}]},
+ {id:7, user:'大漠孤烟直', spotId:1022, text:'鸣沙山滑沙下来满嘴沙子,但月牙泉亮起来的那一刻,什么疲惫都没了。骆驼队剪影是丝路最好的注脚。', likes:168, liked:false, time:'1 周前', cmts:[]},
+ {id:8, user:'山水画中人', spotId:1016, text:'漓江竹筏过九马画山,两岸青峰倒映在江面,终于明白「桂林山水甲天下」不是夸张,是写实。', likes:121, liked:false, time:'1 周前', cmts:[{user:'兴坪渔翁', text:'20 元人民币背面同款打卡位,黄布倒影段别错过', time:'5 天前'}]}
 ];
 
 const $ = id => document.getElementById(id);
@@ -354,44 +411,105 @@ function syncUser(){
 }
 
 /* ---------- 社区动态 ---------- */
-function renderMoments(){
+let openCmts = {};   // 记录展开评论区的动态 id
+/* 读取动态列表:检测到旧版 3 条演示数据时自动升级合并(用户自己发布的在前) */
+function getMomentList(){
   let list = api.getMoments();
-  if(!list){ list = DEFAULT_MOMENTS; api.saveMoments(list); }
+  if(!list){ list = DEFAULT_MOMENTS.slice(); api.saveMoments(list); return list; }
+  if(list.some(m=>m.id<=100)){
+    const own = list.filter(m=>m.id>100);
+    list = own.concat(DEFAULT_MOMENTS.slice());
+    api.saveMoments(list);
+  }
+  return list;
+}
+function spotCardHTML(s){
+  return `<a class="mspot-card" href="travel-spots.html?spot=${s.id}" target="_blank" title="点击查看「${s.name}」的介绍与游客评论">
+    <img src="${s.img}" alt="${s.name}" loading="lazy">
+    <div class="sc-info"><b>${s.name}</b><div>⭐ ${s.score||'-'} 分 · ${s.province||''}${s.city?' '+s.city:''}${s.cat?' · '+s.cat:''}</div></div>
+    <span class="sc-go">看详情 →</span>
+  </a>`;
+}
+function cmtsHTML(m){
+  const cmts = m.cmts || [];
+  const u = api.getUser();
+  return `<div class="mcmts">
+    ${cmts.map(c=>`<div class="mcmt"><div class="cav">${c.user[0]}</div><div class="cbc"><b>${c.user}</b>${c.text}<i>${c.time}</i></div></div>`).join('')}
+    <div class="mcmtform">
+      <input id="cmtIn-${m.id}" placeholder="${u?'友善回一句,分享你的同款体验…':'以游客身份评论,登录后可署名'}" maxlength="100" onkeydown="if(event.key==='Enter')postCmtMid(${m.id})">
+      <button onclick="postCmtMid(${m.id})">发送</button>
+    </div>
+  </div>`;
+}
+function renderMoments(){
+  const list = getMomentList();
   $('momentList').innerHTML = list.map(m=>{
-    const spot = m.spotId ? SPOT_NAME[m.spotId] : null;
+    const s = m.spotId ? getSpot(m.spotId) : null;
+    const cmts = m.cmts || [];
     return `<div class="moment">
       <div class="mhead">
         <div class="mav">${m.user[0]}</div>
-        <div><b>${m.user}</b><div class="mtime">${m.time}${spot?` · 在 <span class="mspot">${spot}</span> 打卡`:''}</div></div>
+        <div><b>${m.user}</b><div class="mtime">${m.time}${s?` · 在 <span class="mspot">${s.name}</span> 打卡`:''}</div></div>
       </div>
       <div class="mtext">${m.text}</div>
+      ${s?spotCardHTML(s):''}
       <div class="mfoot">
         <button class="${m.liked?'on':''}" onclick="likeMoment(${m.id})">${m.liked?'❤️':'🤍'} ${m.likes}</button>
-        <button onclick="toast('评论区演示:正式版对接 /api/comment/list')">💬 评论</button>
+        <button onclick="toggleCmts(${m.id})">💬 评论${cmts.length?`(${cmts.length})`:''}</button>
         <button onclick="toast('已收藏该动态')">⭐ 收藏</button>
       </div>
+      ${openCmts[m.id]?cmtsHTML(m):''}
     </div>`;
   }).join('');
 }
 function likeMoment(id){
-  const list = api.getMoments();
+  const list = getMomentList();
   const m = list.find(x=>x.id===id); if(!m) return;
   m.liked = !m.liked; m.likes += m.liked?1:-1;
   api.saveMoments(list); renderMoments();
+}
+function toggleCmts(id){ openCmts[id] = !openCmts[id]; renderMoments(); if(openCmts[id]){ const inp=$('cmtIn-'+id); if(inp) inp.focus(); } }
+function postCmtMid(id){
+  const inp = $('cmtIn-'+id); if(!inp) return;
+  const text = inp.value.trim();
+  if(!text){ toast('先写点评论内容吧'); return; }
+  const u = api.getUser();
+  const list = api.getMoments() || [];
+  const m = list.find(x=>x.id===id); if(!m) return;
+  (m.cmts = m.cmts || []).push({user:u?u.name:'热心游客', text, time:'刚刚'});
+  api.saveMoments(list);
+  openCmts[id] = true;
+  renderMoments(); toast('评论发布成功!');
 }
 function postMoment(){
   const text = $('momentInput').value.trim();
   if(!text){ toast('先写点内容再发布吧'); return; }
   const u = api.getUser();
-  const list = api.getMoments() || DEFAULT_MOMENTS;
-  list.unshift({id:Date.now(), user:u?u.name:'热心游客', spotId:null, text, likes:0, liked:false, time:'刚刚'});
+  const spotId = +$('postSpot').value || null;
+  const list = getMomentList();
+  list.unshift({id:Date.now(), user:u?u.name:'热心游客', spotId, text, likes:0, liked:false, time:'刚刚', cmts:[]});
   api.saveMoments(list);
   $('momentInput').value='';
-  renderMoments(); toast('发布成功!');
+  renderMoments(); toast(spotId?'发布成功!动态已关联景点 ✨':'发布成功!');
+}
+function fillSpotSelect(){
+  const sel = $('postSpot'); if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">📍 关联景点(可选)</option>' + SPOTS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  if(cur) sel.value = cur;
 }
 
 /* ---------- 初始化 ---------- */
-syncUser(); renderMoments();
+/* 图片加载失败兜底 → 自动切换为 AI 示意图,保证不出现裂图 */
+document.addEventListener('error', e=>{
+  const t = e.target;
+  if(t.tagName==='IMG' && !t.dataset.fallen){
+    t.dataset.fallen = '1';
+    t.src = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt='+encodeURIComponent((t.alt||'China scenic spot')+' famous landmark, beautiful landscape, travel photography')+'&image_size=landscape_4_3';
+  }
+}, true);
+syncUser(); renderMoments();   // 先按内置数据渲染,爬虫景点合并后再重渲染
+loadCrawledSpots().then(()=>{ fillSpotSelect(); renderMoments(); });
 document.querySelectorAll('.modal-mask').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('show'); }));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-mask.show').forEach(m=>m.classList.remove('show')); });
 const io = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }),{threshold:.08});
