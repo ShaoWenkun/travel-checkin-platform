@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://images.weserv.nl" crossorigin>
+<link rel="dns-prefetch" href="https://images.weserv.nl">
 <title>我的 · Fly Me to the World</title>
 <script>document.documentElement.dataset.theme=localStorage.getItem('tcf_theme')||'night'</script>
 <style>
@@ -363,18 +365,18 @@ const api = {
 };
 const IMG = p => `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(p)}&image_size=landscape_4_3`;
 const SPOTS = [
- {id:1, name:'丽江古城', city:'丽江', province:'云南', cat:'古镇', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F1%2F12%2FLijiang-canales-l02.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:2, name:'亚龙湾', city:'三亚', province:'海南', cat:'海岛', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FYalong_Bay_01.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:3, name:'张家界国家森林公园', city:'张家界', province:'湖南', cat:'山川', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fac%2FYangjiajie.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:4, name:'故宫博物院', city:'北京', province:'北京', cat:'历史', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F2%2F23%2FHall_of_Supreme_Harmony_(20241127120000).jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:5, name:'西湖', city:'杭州', province:'浙江', cat:'湖泊', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fa9%2FWest_Lake_-_Hangzhou%2C_China.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:6, name:'鼓浪屿', city:'厦门', province:'福建', cat:'海岛', score:4.7, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F0%2F0f%2F%E9%BC%93%E6%B5%AA%E5%B1%BF_-_panoramio.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:7, name:'九寨沟', city:'阿坝', province:'四川', cat:'湖泊', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fef%2F1_nuorilang_jiuzhaigou_2023.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:8, name:'秦始皇兵马俑', city:'西安', province:'陕西', cat:'历史', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F8%2F88%2F51714-Terracota-Army.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:9, name:'呼伦贝尔大草原', city:'呼伦贝尔', province:'内蒙古', cat:'草原', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F33%2FHulunbuir_Grasslands%2C_Inner_Mongolia.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:10, name:'凤凰古城', city:'湘西', province:'湖南', cat:'古镇', score:4.7, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F34%2F%E5%87%A4%E5%87%B0_-_panoramio_(1).jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:11, name:'黄山风景区', city:'黄山', province:'安徽', cat:'山川', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FHuangshan_fengjing.jpg&w=800&h=560&fit=cover&output=jpg&q=80'},
- {id:12, name:'外滩', city:'上海', province:'上海', cat:'城市', score:4.7, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fe0%2FPromenade_du_Bund.jpg&w=800&h=560&fit=cover&output=jpg&q=80'}
+ {id:1, name:'丽江古城', city:'丽江', province:'云南', cat:'古镇', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F1%2F12%2FLijiang-canales-l02.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:2, name:'亚龙湾', city:'三亚', province:'海南', cat:'海岛', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FYalong_Bay_01.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:3, name:'张家界国家森林公园', city:'张家界', province:'湖南', cat:'山川', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fac%2FYangjiajie.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:4, name:'故宫博物院', city:'北京', province:'北京', cat:'历史', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F2%2F23%2FHall_of_Supreme_Harmony_(20241127120000).jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:5, name:'西湖', city:'杭州', province:'浙江', cat:'湖泊', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fa9%2FWest_Lake_-_Hangzhou%2C_China.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:6, name:'鼓浪屿', city:'厦门', province:'福建', cat:'海岛', score:4.7, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F0%2F0f%2F%E9%BC%93%E6%B5%AA%E5%B1%BF_-_panoramio.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:7, name:'九寨沟', city:'阿坝', province:'四川', cat:'湖泊', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fef%2F1_nuorilang_jiuzhaigou_2023.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:8, name:'秦始皇兵马俑', city:'西安', province:'陕西', cat:'历史', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F8%2F88%2F51714-Terracota-Army.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:9, name:'呼伦贝尔大草原', city:'呼伦贝尔', province:'内蒙古', cat:'草原', score:4.8, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F33%2FHulunbuir_Grasslands%2C_Inner_Mongolia.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:10, name:'凤凰古城', city:'湘西', province:'湖南', cat:'古镇', score:4.7, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F34%2F%E5%87%A4%E5%87%B0_-_panoramio_(1).jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:11, name:'黄山风景区', city:'黄山', province:'安徽', cat:'山川', score:4.9, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FHuangshan_fengjing.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'},
+ {id:12, name:'外滩', city:'上海', province:'上海', cat:'城市', score:4.7, img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fe0%2FPromenade_du_Bund.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il'}
 ];
 const $ = id => document.getElementById(id);
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2200); }

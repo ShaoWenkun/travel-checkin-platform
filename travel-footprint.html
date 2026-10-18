@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://images.weserv.nl" crossorigin>
+<link rel="dns-prefetch" href="https://images.weserv.nl">
 <title>我的足迹 · Fly Me to the World</title>
 <script>document.documentElement.dataset.theme=localStorage.getItem('tcf_theme')||'night'</script>
 <style>
@@ -428,18 +430,18 @@ const api = {
 };
 const IMG = p => `https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=${encodeURIComponent(p)}&image_size=landscape_4_3`;
 const SPOTS = [
- {id:1, name:'丽江古城', city:'丽江', province:'云南', score:4.9, tags:['古镇','夜景','世遗'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F1%2F12%2FLijiang-canales-l02.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'茶马古道上的千年古城,小桥流水与纳西民居相映。'},
- {id:2, name:'亚龙湾', city:'三亚', province:'海南', score:4.8, tags:['海岛','沙滩','潜水'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FYalong_Bay_01.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'天下第一湾,椰林树影与碧海银滩的热带天堂。'},
- {id:3, name:'张家界国家森林公园', city:'张家界', province:'湖南', score:4.8, tags:['奇峰','云海','栈道'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fac%2FYangjiajie.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'三千奇峰拔地而起,《阿凡达》悬浮山原型地。'},
- {id:4, name:'八达岭长城', city:'北京', province:'北京', score:4.7, tags:['历史','徒步','日出'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fc%2Fc4%2FGreatWall_Badaling.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'不到长城非好汉,崇山峻岭间的巨龙脊梁。'},
- {id:5, name:'西湖', city:'杭州', province:'浙江', score:4.8, tags:['湖泊','园林','骑行'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fa9%2FWest_Lake_-_Hangzhou%2C_China.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'淡妆浓抹总相宜,江南园林与湖光山色的典范。'},
- {id:6, name:'鼓浪屿', city:'厦门', province:'福建', score:4.6, tags:['海岛','文艺','建筑'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F0%2F0f%2F%E9%BC%93%E6%B5%AA%E5%B1%BF_-_panoramio.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'万国建筑博览与琴声悠扬的文艺小岛。'},
- {id:7, name:'九寨沟', city:'阿坝', province:'四川', score:4.9, tags:['彩池','瀑布','秋色'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fef%2F1_nuorilang_jiuzhaigou_2023.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'九寨归来不看水,五彩斑斓的高原海子群。'},
- {id:8, name:'秦始皇兵马俑', city:'西安', province:'陕西', score:4.8, tags:['历史','博物馆','考古'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F8%2F88%2F51714-Terracota-Army.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'世界第八大奇迹,两千年前的大秦军团。'},
- {id:9, name:'呼伦贝尔大草原', city:'呼伦贝尔', province:'内蒙古', score:4.7, tags:['草原','骑马','星空'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F33%2FHulunbuir_Grasslands%2C_Inner_Mongolia.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'天苍苍野茫茫,策马奔腾的北国牧歌。'},
- {id:10,name:'凤凰古城', city:'湘西', province:'湖南', score:4.6, tags:['古镇','吊脚楼','沱江'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F34%2F%E5%87%A4%E5%87%B0_-_panoramio_(1).jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'沱江边的吊脚楼群,沈从文笔下的边城。'},
- {id:11,name:'黄山', city:'黄山', province:'安徽', score:4.9, tags:['奇松','云海','日出'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FHuangshan_fengjing.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'五岳归来不看山,黄山归来不看岳。'},
- {id:12,name:'外滩', city:'上海', province:'上海', score:4.7, tags:['夜景','都市','建筑'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fe0%2FPromenade_du_Bund.jpg&w=800&h=560&fit=cover&output=jpg&q=80', intro:'万国建筑群与陆家嘴天际线隔江相望。'}
+ {id:1, name:'丽江古城', city:'丽江', province:'云南', score:4.9, tags:['古镇','夜景','世遗'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F1%2F12%2FLijiang-canales-l02.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'茶马古道上的千年古城,小桥流水与纳西民居相映。'},
+ {id:2, name:'亚龙湾', city:'三亚', province:'海南', score:4.8, tags:['海岛','沙滩','潜水'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FYalong_Bay_01.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'天下第一湾,椰林树影与碧海银滩的热带天堂。'},
+ {id:3, name:'张家界国家森林公园', city:'张家界', province:'湖南', score:4.8, tags:['奇峰','云海','栈道'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fac%2FYangjiajie.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'三千奇峰拔地而起,《阿凡达》悬浮山原型地。'},
+ {id:4, name:'八达岭长城', city:'北京', province:'北京', score:4.7, tags:['历史','徒步','日出'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fc%2Fc4%2FGreatWall_Badaling.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'不到长城非好汉,崇山峻岭间的巨龙脊梁。'},
+ {id:5, name:'西湖', city:'杭州', province:'浙江', score:4.8, tags:['湖泊','园林','骑行'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fa%2Fa9%2FWest_Lake_-_Hangzhou%2C_China.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'淡妆浓抹总相宜,江南园林与湖光山色的典范。'},
+ {id:6, name:'鼓浪屿', city:'厦门', province:'福建', score:4.6, tags:['海岛','文艺','建筑'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F0%2F0f%2F%E9%BC%93%E6%B5%AA%E5%B1%BF_-_panoramio.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'万国建筑博览与琴声悠扬的文艺小岛。'},
+ {id:7, name:'九寨沟', city:'阿坝', province:'四川', score:4.9, tags:['彩池','瀑布','秋色'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fef%2F1_nuorilang_jiuzhaigou_2023.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'九寨归来不看水,五彩斑斓的高原海子群。'},
+ {id:8, name:'秦始皇兵马俑', city:'西安', province:'陕西', score:4.8, tags:['历史','博物馆','考古'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F8%2F88%2F51714-Terracota-Army.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'世界第八大奇迹,两千年前的大秦军团。'},
+ {id:9, name:'呼伦贝尔大草原', city:'呼伦贝尔', province:'内蒙古', score:4.7, tags:['草原','骑马','星空'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F33%2FHulunbuir_Grasslands%2C_Inner_Mongolia.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'天苍苍野茫茫,策马奔腾的北国牧歌。'},
+ {id:10,name:'凤凰古城', city:'湘西', province:'湖南', score:4.6, tags:['古镇','吊脚楼','沱江'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F34%2F%E5%87%A4%E5%87%B0_-_panoramio_(1).jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'沱江边的吊脚楼群,沈从文笔下的边城。'},
+ {id:11,name:'黄山', city:'黄山', province:'安徽', score:4.9, tags:['奇松','云海','日出'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2F4%2F44%2FHuangshan_fengjing.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'五岳归来不看山,黄山归来不看岳。'},
+ {id:12,name:'外滩', city:'上海', province:'上海', score:4.7, tags:['夜景','都市','建筑'], img:'https://images.weserv.nl/?url=upload.wikimedia.org%2Fwikipedia%2Fcommons%2Fe%2Fe0%2FPromenade_du_Bund.jpg&w=640&h=448&fit=cover&output=jpg&q=72&il', intro:'万国建筑群与陆家嘴天际线隔江相望。'}
 ];
 const BADGES = [
  {need:1,  ico:'🌱', name:'启程者'},
