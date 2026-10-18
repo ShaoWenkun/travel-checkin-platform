@@ -147,9 +147,10 @@ nav .wrap{display:flex;align-items:center;justify-content:space-between;height:6
 .album-card .am{display:flex;justify-content:space-between;font-size:11px;margin-top:7px;color:var(--ink-2)}
 .album-card .am b{color:var(--gold)}
 .album-card .tape{position:absolute;top:6px;left:50%;transform:translateX(-50%) rotate(-3deg);width:64px;height:15px;background:rgba(231,199,109,.4);border-radius:2px;z-index:2}
-.album-card .adel{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:rgba(13,19,34,.65);color:#fff;font-size:11px;display:grid;place-items:center;z-index:3;opacity:0;transition:.2s}
+.album-card .adel{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:rgba(13,19,34,.65);color:#fff;font-size:11px;display:grid;place-items:center;z-index:3;opacity:.85;transition:.2s}
 .album-card:hover .adel{opacity:1}
 .album-card .adel:hover{background:var(--err);transform:scale(1.12)}
+@media (hover:none){.album-card .adel{opacity:1}}
 .empty-tip{grid-column:1/-1;text-align:center;font-size:13px;color:var(--muted);border:1.5px dashed var(--line);border-radius:14px;padding:26px}
 
 /* ---------- 纪念册弹窗(照抄模板) ---------- */
@@ -417,19 +418,27 @@ function closeAlbum(){ $('#aovl').classList.remove('show'); stopBgm(); }
 /* ---------- 删除纪念册(同步移除打卡/足迹/社区动态) ---------- */
 let delPend=null;
 function askDelAlbum(id){
+  const box=$('delOvl'), tip=$('delTxt');
+  if(!box||!tip) return;
   const a=LS.get('tcf_albums',[]).find(x=>x.id===id); if(!a)return;
   delPend=id;
-  $('delTxt').textContent=`「${a.dest} · ${a.date}」将被删除,对应的打卡记录、足迹点亮与社区动态会同步移除。`;
-  $('delOvl').classList.add('show');
+  tip.textContent=`「${a.dest} · ${a.date||''}」将被删除,对应的打卡记录、足迹点亮与社区动态会同步移除。`;
+  box.classList.add('show');
 }
-function closeDel(){ $('delOvl').classList.remove('show'); delPend=null; }
+function closeDel(){ const b=$('delOvl'); if(b)b.classList.remove('show'); delPend=null; }
 function doDelAlbum(){
+  if(!delPend){ closeDel(); return; }
+  const user=api.getUser();
   const a=LS.get('tcf_albums',[]).find(x=>x.id===delPend);
   LS.set('tcf_albums', LS.get('tcf_albums',[]).filter(x=>x.id!==delPend));
   if(a){
-    LS.set('tcf_checkins', api.getCheckins().filter(c=>!(c.spotId===a.spotId && c.note===a.text)));
+    /* 移除本页打卡产生的足迹记录(景点+文字双匹配,不动其他来源的打卡) */
+    LS.set('tcf_checkins', api.getCheckins().filter(c=>!(c.spotId===a.spotId && (c.note===a.text || (c.note==null && !a.text)))));
+    /* 移除本页打卡产生的社区动态: id>100000 必为用户动态(Date.now()),排除默认动态(101-108);
+       同景点+文字前20字匹配+仅本人,避免误删默认/他人动态 */
     const ml=api.getMoments()||[];
-    api.saveMoments(ml.filter(m=>!(m.id>100 && m.spotId===a.spotId && typeof m.text==='string' && m.text.indexOf(a.text.slice(0,20))===0)));
+    const pref=(a.text||'').slice(0,20);
+    api.saveMoments(ml.filter(m=>!(m.id>100000 && m.spotId===a.spotId && user && m.user===user.name && typeof m.text==='string' && m.text.indexOf(pref)===0)));
   }
   closeDel(); renderAlbums();
   toast('纪念册已删除,足迹与社区已同步 🗑');

@@ -393,14 +393,16 @@ const SPOTS = [
  {id:12,name:'外滩', city:'上海', province:'上海', cat:'城市', score:4.7, heat:8340, img:'img/Promenade_du_Bund.jpg'}
 ];
 /* 合并爬虫景点(spots.json,id 从 1000 起,按名称去重,与其他页面保持一致) */
+let SPOTS_READY=null;
 function loadCrawledSpots(){
-  return fetch('spots.json').then(r=>r.json()).then(arr=>{
+  SPOTS_READY = fetch('spots.json').then(r=>r.json()).then(arr=>{
     let nextId = 1000;
     arr.forEach(o=>{
       if(SPOTS.some(s=>s.name===o.name)) return;
       SPOTS.push({id:nextId++, name:o.name, city:o.city, province:o.province, cat:o.cat, score:o.score, heat:o.heat, img:o.img||''});
     });
   }).catch(()=>{});
+  return SPOTS_READY;
 }
 
 const $ = id => document.getElementById(id);
@@ -818,8 +820,13 @@ function extractDests(text){
   /* 1b) 口语别名:短称呼无法被子串匹配覆盖时直接映射(如"漓江"→桂林漓江景区) */
   const SPOT_ALIAS = {'漓江':'桂林漓江景区','鸣沙山':'敦煌鸣沙山月牙泉','月牙泉':'敦煌鸣沙山月牙泉'};
   Object.keys(SPOT_ALIAS).forEach(a=>{ if(text.includes(a)){ const s=SPOTS.find(x=>x.name===SPOT_ALIAS[a]); if(s) pushSpot(s, a); } });
-  /* 2) 常见目的地词库 */
-  DEST_HINTS.forEach(d=>{ if(text.includes(d) && !out.some(o=>o.spot && (o.spot.city===d || o.spot.province===d))) push({name:d, key:d}); });
+  /* 2) 常见目的地词库:优先映射平台/爬虫景点出实拍卡(如"大理"→大理古城,"黄山"→黄山),无对应景点才出 AI 示意图 */
+  DEST_HINTS.forEach(d=>{
+    if(!text.includes(d)) return;
+    const s = spotMatch(d) || SPOTS.find(x=>x.city===d || x.province===d);
+    if(s){ pushSpot(s, d); return; }
+    if(!out.some(o=>o.spot && (o.spot.city===d || o.spot.province===d))) push({name:d, key:d});
+  });
   /* 3) 动态识别:XX市/省/州/古城/古镇/风景区 + “去/在XX” + “XX之旅/自由行” */
   const RE = /([\u4e00-\u9fa5]{2,5}(?:市|省|自治区|州|地区|古城|古镇|群岛|风景区))|去([\u4e00-\u9fa5]{2,5})|在([\u4e00-\u9fa5]{2,5})|([\u4e00-\u9fa5]{2,5})(?:之旅|自由行)/g;
   let m;
@@ -845,7 +852,9 @@ function destStripHTML(list){
   }).join('');
   return `<div class="dest-strip"><div class="dst-hd">${hasSpot?'🖼️ 聊到的景点,实拍照片都在这里(点击可看介绍与评论)':'🖼️ 相关目的地示意图'}</div><div class="dst-row">${cards}</div></div>`;
 }
-function showDestImages(q, reply){
+async function showDestImages(q, reply){
+  if(!SPOTS_READY) loadCrawledSpots();       // 兜底:确保爬虫景点已就绪
+  await SPOTS_READY;                         // 结束对话取图前,先等 spots.json 爬虫数据加载完,保证优先用爬虫实拍
   const list = extractDests(`${q||''} ${reply||''}`);
   if(list.length) appendMsg('ai', destStripHTML(list));
 }
